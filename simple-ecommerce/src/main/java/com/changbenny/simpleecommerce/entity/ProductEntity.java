@@ -1,5 +1,6 @@
 package com.changbenny.simpleecommerce.entity;
 
+import com.changbenny.simpleecommerce.constant.ProductCategory;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
@@ -10,33 +11,45 @@ import java.util.Date;
 @Table(name = "product")
 public class ProductEntity {
 
+    //定義Primary key欄位
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name ="product_id")
+    @Column(name ="product_id", nullable = false)
     private Integer productId;
 
-    @Column(name = "product_name")
+    //定義product_name欄位大小長度128
+    @Column(name = "product_name",nullable = false,length = 128)
     private String productName;
 
-    @Column(name = "category")
-    private String category;
+    //定義category欄位大小長度32
+    @Column(name = "category", nullable = false,length = 32)
+    @Enumerated(EnumType.STRING)//enum常量的名字存進DB
+    private ProductCategory category;
 
-    @Column(name = "image_url")
+    //定義image_url欄位大小長度256
+    @Column(name = "image_url",nullable = false,length = 256)
     private String imageUrl;
 
-    @Column(name = "price")
+    //定義price欄位精度10，小數位2位
+    @Column(name = "price",precision = 10,scale=2)
     private BigDecimal price;
 
-    @Column(name = "stock")
+    //定義stock欄位
+    @Column(name = "stock",nullable = false)
     private Integer stock;
 
-    @Column(name = "description")
+    //定義description欄位長度大小1024
+    @Column(name = "description",length = 1024)
     private String description;
 
-    @Column(name = "created_date")
+    //定義created_date欄位
+    @Column(name = "created_date", nullable = false)
+    @Temporal(TemporalType.TIMESTAMP)//存入DB是TIMESTAMP HH:mm:ss
     private Date createdDate;
 
-    @Column(name = "last_modified_date")
+    //定義last_modified_date欄位
+    @Column(name = "last_modified_date",   nullable = false)
+    @Temporal(TemporalType.TIMESTAMP)//存入DB是TIMESTAMP HH:mm:ss
     private Date lastModifiedDate;
 
     public Integer getProductId() {
@@ -55,11 +68,11 @@ public class ProductEntity {
         this.productName = productName;
     }
 
-    public String getCategory() {
+    public ProductCategory getCategory() {
         return category;
     }
 
-    public void setCategory(String category) {
+    public void setCategory(ProductCategory category) {
         this.category = category;
     }
 

@@ -1,5 +1,6 @@
 package com.changbenny.simpleecommerce.rowmapper;
 
+import com.changbenny.simpleecommerce.constant.ProductCategory;
 import com.changbenny.simpleecommerce.entity.ProductEntity;
 import org.springframework.jdbc.core.RowMapper;
 
@@ -12,7 +13,12 @@ public class ProductRowMapper implements RowMapper<ProductEntity> {
         ProductEntity productEntity = new ProductEntity();
         productEntity.setProductId(rs.getInt("product_id"));
         productEntity.setProductName(rs.getString("product_name"));
-        productEntity.setCategory(rs.getString("category"));
+
+        //categoryString轉型ProductCategory Enum
+        String categoryString = rs.getString("category");
+        ProductCategory category = ProductCategory.valueOf(categoryString);
+        productEntity.setCategory(category);
+
         productEntity.setImageUrl(rs.getString("image_url"));
         productEntity.setPrice(rs.getBigDecimal("price"));
         productEntity.setDescription(rs.getString("description"));
