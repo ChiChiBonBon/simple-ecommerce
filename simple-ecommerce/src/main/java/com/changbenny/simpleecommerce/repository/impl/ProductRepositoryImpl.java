@@ -1,12 +1,17 @@
 package com.changbenny.simpleecommerce.repository.impl;
 
+import com.changbenny.simpleecommerce.dto.ProductRequestDTO;
 import com.changbenny.simpleecommerce.entity.ProductEntity;
 import com.changbenny.simpleecommerce.repository.ProductRepository;
 import com.changbenny.simpleecommerce.rowmapper.ProductRowMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,5 +40,39 @@ public class ProductRepositoryImpl implements ProductRepository {
         }else {
             return null;
         }
+    }
+
+    @Override
+    public Integer createProduct(ProductRequestDTO productRequestDTO) {
+        String sqlString = " INSERT INTO product " +
+                " (product_name, category, image_url, price, stock, " +
+                "  description, created_date, last_modified_date) " +
+                " VALUES (:productName,:category,:imageUrl,:price,:stock," +
+                "  :description,:createdDate,:lastModifiedDate) ";
+
+        Map<String,Object> productMap = new HashMap<>();
+        productMap.put("productName", productRequestDTO.getProductName());
+        productMap.put("category", productRequestDTO.getCategory().name());
+        productMap.put("imageUrl", productRequestDTO.getImageUrl());
+        productMap.put("price", productRequestDTO.getPrice());
+        productMap.put("stock", productRequestDTO.getStock());
+        productMap.put("description", productRequestDTO.getDescription());
+
+        Date date = new Date();
+
+        productMap.put("createdDate", date);
+        productMap.put("lastModifiedDate", date);
+
+
+        //KeyHolder存放資料庫產生的主鍵
+        //自動產生的 key 塞到 GeneratedKeyHolder，為KeyHolder的實作類別
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+
+        namedParameterJdbcTemplate.update(sqlString, new MapSqlParameterSource(productMap), keyHolder);
+
+        //取得SQL執行後，自動生成的主鍵
+        int productId = keyHolder.getKey().intValue();
+
+        return productId;
     }
 }
