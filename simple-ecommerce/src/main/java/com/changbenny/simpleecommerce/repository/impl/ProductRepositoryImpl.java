@@ -23,6 +23,18 @@ public class ProductRepositoryImpl implements ProductRepository {
     NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
     @Override
+    public List<ProductEntity> getProducts() {
+        String sqlString = " SELECT price, product_id, stock, created_date, last_modified_date, product_name, " +
+                           " image_url, description, category " +
+                           " FROM product ";
+
+        Map<String, Object> productMap = new HashMap<>();
+
+        List<ProductEntity> productEntityList = namedParameterJdbcTemplate.query(sqlString, productMap, new ProductRowMapper());
+        return productEntityList;
+    }
+
+    @Override
     public ProductEntity getProductById(Integer productId) {
         String sqlString = " select product_id, product_name, category, image_url, price, stock, description, " +
                            " created_date, last_modified_date " +

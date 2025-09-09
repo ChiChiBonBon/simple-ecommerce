@@ -12,10 +12,20 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 @RestController
 public class ProductController {
     @Autowired
     ProductService productService;
+
+    //查詢所有商品
+    @PostMapping("/products")
+    public ResponseEntity<List<ProductEntity>> getAllProducts() {
+        List<ProductEntity> productEntityList = productService.getProducts();
+
+        return ResponseEntity.status(HttpStatus.OK).body(productEntityList);
+    }
 
     //依商品ID查找
     @PostMapping("/products/search/{productId}")
