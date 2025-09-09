@@ -1,13 +1,14 @@
 package com.changbenny.simpleecommerce.service;
 
 import com.changbenny.simpleecommerce.constant.ProductCategory;
+import com.changbenny.simpleecommerce.dto.ProductQueryParams;
 import com.changbenny.simpleecommerce.dto.ProductRequestDTO;
 import com.changbenny.simpleecommerce.entity.ProductEntity;
 
 import java.util.List;
 
 public interface ProductService {
-    List<ProductEntity> getProducts(ProductCategory category,String search);
+    List<ProductEntity> getProducts(ProductQueryParams productQueryParams);
 
     ProductEntity getProductById(Integer productId);
 

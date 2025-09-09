@@ -1,6 +1,7 @@
 package com.changbenny.simpleecommerce.repository.impl;
 
 import com.changbenny.simpleecommerce.constant.ProductCategory;
+import com.changbenny.simpleecommerce.dto.ProductQueryParams;
 import com.changbenny.simpleecommerce.dto.ProductRequestDTO;
 import com.changbenny.simpleecommerce.entity.ProductEntity;
 import com.changbenny.simpleecommerce.repository.ProductRepository;
@@ -24,7 +25,7 @@ public class ProductRepositoryImpl implements ProductRepository {
     NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
     @Override
-    public List<ProductEntity> getProducts(ProductCategory category, String search) {
+    public List<ProductEntity> getProducts(ProductQueryParams productQueryParams) {
         String sqlString = " SELECT price, product_id, stock, created_date, last_modified_date, product_name, " +
                            " image_url, description, category " +
                            " FROM product WHERE 1=1 ";
@@ -32,15 +33,15 @@ public class ProductRepositoryImpl implements ProductRepository {
         Map<String, Object> productMap = new HashMap<>();
 
         //依商品查詢的商品分類為條件
-        if(category != null){
+        if(productQueryParams.getCategory() != null){
             sqlString += " AND category = :category ";
-            productMap.put("category", category.name());
+            productMap.put("category", productQueryParams.getCategory().name());
         }
 
         //依商品查詢的搜尋字串為條件
-        if(search != null ){
+        if(productQueryParams.getSearch() != null ){
             sqlString += " AND product_name LIKE :search ";
-            productMap.put("search","%" + search + "%" );
+            productMap.put("search","%" + productQueryParams.getSearch() + "%" );
         }
 
         List<ProductEntity> productEntityList = namedParameterJdbcTemplate.query(sqlString, productMap, new ProductRowMapper());

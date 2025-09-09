@@ -1,6 +1,7 @@
 package com.changbenny.simpleecommerce.service.impl;
 
 import com.changbenny.simpleecommerce.constant.ProductCategory;
+import com.changbenny.simpleecommerce.dto.ProductQueryParams;
 import com.changbenny.simpleecommerce.dto.ProductRequestDTO;
 import com.changbenny.simpleecommerce.entity.ProductEntity;
 import com.changbenny.simpleecommerce.repository.ProductRepository;
@@ -16,8 +17,8 @@ public class ProductServiceImpl implements ProductService {
     ProductRepository  productRepository;
 
     @Override
-    public List<ProductEntity> getProducts(ProductCategory category, String search) {
-        return productRepository.getProducts(category,search);
+    public List<ProductEntity> getProducts(ProductQueryParams productQueryParams) {
+        return productRepository.getProducts(productQueryParams);
     }
 
     @Override

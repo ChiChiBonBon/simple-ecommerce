@@ -1,6 +1,7 @@
 package com.changbenny.simpleecommerce.controller;
 
 import com.changbenny.simpleecommerce.constant.ProductCategory;
+import com.changbenny.simpleecommerce.dto.ProductQueryParams;
 import com.changbenny.simpleecommerce.dto.ProductRequestDTO;
 import com.changbenny.simpleecommerce.entity.ProductEntity;
 import com.changbenny.simpleecommerce.service.ProductService;
@@ -23,7 +24,11 @@ public class ProductController {
             @RequestParam(required = false) ProductCategory category,
             @RequestParam(required = false) String search
     ) {
-        List<ProductEntity> productEntityList = productService.getProducts(category,search);
+        ProductQueryParams productQueryParams = new ProductQueryParams();
+        productQueryParams.setSearch(search);
+        productQueryParams.setCategory(category);
+
+        List<ProductEntity> productEntityList = productService.getProducts(productQueryParams);
 
         return ResponseEntity.status(HttpStatus.OK).body(productEntityList);
     }
