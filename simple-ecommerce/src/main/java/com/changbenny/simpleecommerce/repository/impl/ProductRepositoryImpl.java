@@ -1,5 +1,6 @@
 package com.changbenny.simpleecommerce.repository.impl;
 
+import com.changbenny.simpleecommerce.constant.ProductCategory;
 import com.changbenny.simpleecommerce.dto.ProductRequestDTO;
 import com.changbenny.simpleecommerce.entity.ProductEntity;
 import com.changbenny.simpleecommerce.repository.ProductRepository;
@@ -23,12 +24,24 @@ public class ProductRepositoryImpl implements ProductRepository {
     NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
     @Override
-    public List<ProductEntity> getProducts() {
+    public List<ProductEntity> getProducts(ProductCategory category, String search) {
         String sqlString = " SELECT price, product_id, stock, created_date, last_modified_date, product_name, " +
                            " image_url, description, category " +
-                           " FROM product ";
+                           " FROM product WHERE 1=1 ";
 
         Map<String, Object> productMap = new HashMap<>();
+
+        //依商品查詢的商品分類為條件
+        if(category != null){
+            sqlString += " AND category = :category ";
+            productMap.put("category", category.name());
+        }
+
+        //依商品查詢的搜尋字串為條件
+        if(search != null ){
+            sqlString += " AND product_name LIKE :search ";
+            productMap.put("search","%" + search + "%" );
+        }
 
         List<ProductEntity> productEntityList = namedParameterJdbcTemplate.query(sqlString, productMap, new ProductRowMapper());
         return productEntityList;
