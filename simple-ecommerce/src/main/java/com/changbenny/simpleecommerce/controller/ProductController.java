@@ -43,7 +43,7 @@ public class ProductController {
 
     //商品修改
     @PostMapping("/products/update/{productId}")
-    public ResponseEntity<ProductEntity> updateProduct(@PathVariable Integer productId,
+    public ResponseEntity<?> updateProduct(@PathVariable Integer productId,
                                            @RequestBody ProductRequestDTO productRequestDTO) {
         ProductEntity productEntity = productService.getProductById(productId);
 
@@ -59,5 +59,14 @@ public class ProductController {
 
         //回傳200和修改後的商品資料
         return ResponseEntity.status(HttpStatus.OK).body(updatedProductEntity);
+    }
+
+    //商品刪除
+    @PostMapping("/products/delete/{productId}")
+    public ResponseEntity<?> deleteProductById(@PathVariable Integer productId) {
+        productService.deleteProductById(productId);
+
+        //回傳204狀態碼，不回傳body
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }

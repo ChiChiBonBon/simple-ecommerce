@@ -97,4 +97,13 @@ public class ProductRepositoryImpl implements ProductRepository {
 
         namedParameterJdbcTemplate.update(sqlString,productMap);
     }
+
+    @Override
+    public void deleteProductById(Integer productId) {
+        String sqlString = " DELETE FROM product WHERE product_id= :productId ";
+
+        Map<String,Object> productMap = new HashMap<>();
+        productMap.put("productId", productId);
+        namedParameterJdbcTemplate.update(sqlString,productMap);
+    }
 }

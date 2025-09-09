@@ -9,4 +9,6 @@ public interface ProductRepository {
     Integer createProduct(ProductRequestDTO productRequestDTO);
 
     void updateProduct(Integer productId, ProductRequestDTO productRequestDTO);
+
+    void deleteProductById(Integer productId);
 }
