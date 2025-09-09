@@ -24,6 +24,7 @@ public class ProductRowMapper implements RowMapper<ProductEntity> {
         productEntity.setDescription(rs.getString("description"));
         productEntity.setCreatedDate(rs.getDate("created_date"));
         productEntity.setLastModifiedDate(rs.getDate("last_modified_date"));
+        productEntity.setStock(rs.getInt("stock"));
         return productEntity;
     }
 }

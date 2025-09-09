@@ -75,4 +75,26 @@ public class ProductRepositoryImpl implements ProductRepository {
 
         return productId;
     }
+
+    @Override
+    public void updateProduct(Integer productId, ProductRequestDTO productRequestDTO) {
+        String sqlString = " UPDATE product " +
+                           " SET price= :price, stock= :stock, " +
+                           " last_modified_date= :lastModifiedDate, " +
+                           " product_name= :productName, image_url= :imageUrl, description= :description, category= :category " +
+                           " WHERE product_id= :productId ";
+
+        Map<String,Object> productMap = new HashMap<>();
+        productMap.put("productId", productId);
+        productMap.put("price", productRequestDTO.getPrice());
+        productMap.put("stock", productRequestDTO.getStock());
+        productMap.put("description", productRequestDTO.getDescription());
+        productMap.put("productName", productRequestDTO.getProductName());
+        productMap.put("imageUrl", productRequestDTO.getImageUrl());
+        productMap.put("category", productRequestDTO.getCategory().name());
+        //商品資料當下修改時間
+        productMap.put("lastModifiedDate",new Date());
+
+        namedParameterJdbcTemplate.update(sqlString,productMap);
+    }
 }

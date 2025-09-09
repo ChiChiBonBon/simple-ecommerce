@@ -17,7 +17,7 @@ public class ProductController {
     ProductService productService;
 
     //依商品ID查找
-    @PostMapping("/products/{productId}")
+    @PostMapping("/products/search/{productId}")
     public ResponseEntity<?> getProductById(@PathVariable Integer productId) {
         ProductEntity productEntity = productService.getProductById(productId);
 
@@ -31,7 +31,7 @@ public class ProductController {
     }
 
     //商品新增
-    @PostMapping("/products")
+    @PostMapping("/products/create")
     public ResponseEntity<?> createProduct(@RequestBody ProductRequestDTO productRequestDTO) {
         Integer productId = productService.createProduct(productRequestDTO);
 
@@ -39,5 +39,25 @@ public class ProductController {
 
         //回傳201狀態碼，後端已成功建立一個新資源
         return ResponseEntity.status(HttpStatus.CREATED).body(productEntity);
+    }
+
+    //商品修改
+    @PostMapping("/products/update/{productId}")
+    public ResponseEntity<ProductEntity> updateProduct(@PathVariable Integer productId,
+                                           @RequestBody ProductRequestDTO productRequestDTO) {
+        ProductEntity productEntity = productService.getProductById(productId);
+
+        //找不到要修改的商品，則回傳404
+        if(productEntity == null){
+            return ResponseEntity.notFound().build();
+        }
+
+        //修改商品
+        productService.updateProduct(productId,productRequestDTO);
+
+        ProductEntity updatedProductEntity = productService.getProductById(productId);
+
+        //回傳200和修改後的商品資料
+        return ResponseEntity.status(HttpStatus.OK).body(updatedProductEntity);
     }
 }
