@@ -3,6 +3,7 @@ package com.changbenny.simpleecommerce.controller;
 import com.changbenny.simpleecommerce.dto.ProductRequestDTO;
 import com.changbenny.simpleecommerce.entity.ProductEntity;
 import com.changbenny.simpleecommerce.service.ProductService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,7 +33,7 @@ public class ProductController {
 
     //商品新增
     @PostMapping("/products/create")
-    public ResponseEntity<?> createProduct(@RequestBody ProductRequestDTO productRequestDTO) {
+    public ResponseEntity<?> createProduct(@RequestBody @Valid ProductRequestDTO productRequestDTO) {
         Integer productId = productService.createProduct(productRequestDTO);
 
         ProductEntity productEntity = productService.getProductById(productId);
@@ -44,7 +45,7 @@ public class ProductController {
     //商品修改
     @PostMapping("/products/update/{productId}")
     public ResponseEntity<?> updateProduct(@PathVariable Integer productId,
-                                           @RequestBody ProductRequestDTO productRequestDTO) {
+                                           @RequestBody @Valid ProductRequestDTO productRequestDTO) {
         ProductEntity productEntity = productService.getProductById(productId);
 
         //找不到要修改的商品，則回傳404
