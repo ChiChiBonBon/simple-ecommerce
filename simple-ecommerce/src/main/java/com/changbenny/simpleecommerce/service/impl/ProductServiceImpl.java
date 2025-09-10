@@ -17,6 +17,11 @@ public class ProductServiceImpl implements ProductService {
     ProductRepository  productRepository;
 
     @Override
+    public Integer countProducts(ProductQueryParams productQueryParams) {
+        return productRepository.countProducts(productQueryParams);
+    }
+
+    @Override
     public List<ProductEntity> getProducts(ProductQueryParams productQueryParams) {
         return productRepository.getProducts(productQueryParams);
     }

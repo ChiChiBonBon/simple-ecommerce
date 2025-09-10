@@ -25,6 +25,39 @@ public class ProductRepositoryImpl implements ProductRepository {
     NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
     @Override
+    public Integer countProducts(ProductQueryParams productQueryParams) {
+        String sqlString = " SELECT COUNT(*)" +
+                " FROM product WHERE 1=1 ";
+
+        Map<String, Object> productMap = new HashMap<>();
+
+        //依商品查詢的商品分類為條件
+        if(productQueryParams.getCategory() != null){
+            sqlString += " AND category = :category ";
+            productMap.put("category", productQueryParams.getCategory().name());
+        }
+
+        //依商品查詢的搜尋字串為條件
+        if(productQueryParams.getSearch() != null ){
+            sqlString += " AND product_name LIKE :search ";
+            productMap.put("search","%" + productQueryParams.getSearch() + "%" );
+        }
+
+        //依欄位為排序依據
+        sqlString += " ORDER BY " + productQueryParams.getOrderBy() + " " + productQueryParams.getSort();
+
+        //依分頁依據
+        sqlString += " LIMIT :limit OFFSET :offset ";
+        productMap.put("limit", productQueryParams.getLimit());
+        productMap.put("offset", productQueryParams.getOffset());
+
+        //執行查詢並回傳單一結果
+        Integer total = namedParameterJdbcTemplate.queryForObject(sqlString, productMap, Integer.class);
+
+        return total;
+    }
+
+    @Override
     public List<ProductEntity> getProducts(ProductQueryParams productQueryParams) {
         String sqlString = " SELECT price, product_id, stock, created_date, last_modified_date, product_name, " +
                            " image_url, description, category " +
@@ -46,6 +79,11 @@ public class ProductRepositoryImpl implements ProductRepository {
 
         //依欄位為排序依據
         sqlString += " ORDER BY " + productQueryParams.getOrderBy() + " " + productQueryParams.getSort();
+
+        //依分頁依據
+        sqlString += " LIMIT :limit OFFSET :offset ";
+        productMap.put("limit", productQueryParams.getLimit());
+        productMap.put("offset", productQueryParams.getOffset());
 
         List<ProductEntity> productEntityList = namedParameterJdbcTemplate.query(sqlString, productMap, new ProductRowMapper());
         return productEntityList;

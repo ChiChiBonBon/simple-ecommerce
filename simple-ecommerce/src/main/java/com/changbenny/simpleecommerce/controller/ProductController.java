@@ -1,18 +1,23 @@
 package com.changbenny.simpleecommerce.controller;
 
 import com.changbenny.simpleecommerce.constant.ProductCategory;
+import com.changbenny.simpleecommerce.dto.PageResponseDTO;
 import com.changbenny.simpleecommerce.dto.ProductQueryParams;
 import com.changbenny.simpleecommerce.dto.ProductRequestDTO;
 import com.changbenny.simpleecommerce.entity.ProductEntity;
 import com.changbenny.simpleecommerce.service.ProductService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Validated
 @RestController
 public class ProductController {
     @Autowired
@@ -20,23 +25,37 @@ public class ProductController {
 
     //查詢所有商品
     @PostMapping("/products")
-    public ResponseEntity<List<ProductEntity>> getAllProducts(
+    public ResponseEntity<PageResponseDTO<ProductEntity>> getAllProducts(
             //查詢條件，非必填
             @RequestParam(required = false) ProductCategory category,
             @RequestParam(required = false) String search,
             //排序，預設為created_date、desc
             @RequestParam(defaultValue = "created_date") String orderBy,
-            @RequestParam(defaultValue = "desc") String sort
+            @RequestParam(defaultValue = "desc") String sort,
+            //分頁
+            @RequestParam(defaultValue = "24") @Max(24) @Min(0) Integer limit,
+            @RequestParam(defaultValue = "0") @Min(0) Integer offset
     ) {
         ProductQueryParams productQueryParams = new ProductQueryParams();
         productQueryParams.setSearch(search);
         productQueryParams.setCategory(category);
         productQueryParams.setOrderBy(orderBy);
         productQueryParams.setSort(sort);
+        productQueryParams.setLimit(limit);
+        productQueryParams.setOffset(offset);
 
         List<ProductEntity> productEntityList = productService.getProducts(productQueryParams);
 
-        return ResponseEntity.status(HttpStatus.OK).body(productEntityList);
+        Integer total = productService.countProducts(productQueryParams);
+
+        //ResponseDTO
+        PageResponseDTO<ProductEntity> pageResponseDTO = new PageResponseDTO<>();
+        pageResponseDTO.setLimit(limit);
+        pageResponseDTO.setOffset(offset);
+        pageResponseDTO.setTotal(total);
+        pageResponseDTO.setResults(productEntityList);
+
+        return ResponseEntity.status(HttpStatus.OK).body(pageResponseDTO);
     }
 
     //依商品ID查找

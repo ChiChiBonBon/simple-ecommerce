@@ -8,6 +8,8 @@ import com.changbenny.simpleecommerce.entity.ProductEntity;
 import java.util.List;
 
 public interface ProductRepository {
+    Integer countProducts(ProductQueryParams productQueryParams);
+
     List<ProductEntity> getProducts(ProductQueryParams productQueryParams);
 
     ProductEntity getProductById(Integer productId);
