@@ -31,25 +31,8 @@ public class ProductRepositoryImpl implements ProductRepository {
 
         Map<String, Object> productMap = new HashMap<>();
 
-        //依商品查詢的商品分類為條件
-        if(productQueryParams.getCategory() != null){
-            sqlString += " AND category = :category ";
-            productMap.put("category", productQueryParams.getCategory().name());
-        }
-
-        //依商品查詢的搜尋字串為條件
-        if(productQueryParams.getSearch() != null ){
-            sqlString += " AND product_name LIKE :search ";
-            productMap.put("search","%" + productQueryParams.getSearch() + "%" );
-        }
-
-        //依欄位為排序依據
-        sqlString += " ORDER BY " + productQueryParams.getOrderBy() + " " + productQueryParams.getSort();
-
-        //依分頁依據
-        sqlString += " LIMIT :limit OFFSET :offset ";
-        productMap.put("limit", productQueryParams.getLimit());
-        productMap.put("offset", productQueryParams.getOffset());
+        //重構重覆程式碼
+        sqlString = addFilteringSql(sqlString, productMap, productQueryParams);
 
         //執行查詢並回傳單一結果
         Integer total = namedParameterJdbcTemplate.queryForObject(sqlString, productMap, Integer.class);
@@ -65,17 +48,8 @@ public class ProductRepositoryImpl implements ProductRepository {
 
         Map<String, Object> productMap = new HashMap<>();
 
-        //依商品查詢的商品分類為條件
-        if(productQueryParams.getCategory() != null){
-            sqlString += " AND category = :category ";
-            productMap.put("category", productQueryParams.getCategory().name());
-        }
-
-        //依商品查詢的搜尋字串為條件
-        if(productQueryParams.getSearch() != null ){
-            sqlString += " AND product_name LIKE :search ";
-            productMap.put("search","%" + productQueryParams.getSearch() + "%" );
-        }
+        //重構重覆程式碼
+        sqlString = addFilteringSql(sqlString, productMap, productQueryParams);
 
         //依欄位為排序依據
         sqlString += " ORDER BY " + productQueryParams.getOrderBy() + " " + productQueryParams.getSort();
@@ -172,5 +146,22 @@ public class ProductRepositoryImpl implements ProductRepository {
         Map<String,Object> productMap = new HashMap<>();
         productMap.put("productId", productId);
         namedParameterJdbcTemplate.update(sqlString,productMap);
+    }
+
+    //重構重覆程式碼
+    private String addFilteringSql(String sqlString,Map<String,Object> productMap,ProductQueryParams productQueryParams){
+        //依商品查詢的商品分類為條件
+        if(productQueryParams.getCategory() != null){
+            sqlString += " AND category = :category ";
+            productMap.put("category", productQueryParams.getCategory().name());
+        }
+
+        //依商品查詢的搜尋字串為條件
+        if(productQueryParams.getSearch() != null ){
+            sqlString += " AND product_name LIKE :search ";
+            productMap.put("search","%" + productQueryParams.getSearch() + "%" );
+        }
+
+        return  sqlString;
     }
 }
