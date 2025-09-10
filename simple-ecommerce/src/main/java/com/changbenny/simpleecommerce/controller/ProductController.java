@@ -21,12 +21,18 @@ public class ProductController {
     //查詢所有商品
     @PostMapping("/products")
     public ResponseEntity<List<ProductEntity>> getAllProducts(
+            //查詢條件，非必填
             @RequestParam(required = false) ProductCategory category,
-            @RequestParam(required = false) String search
+            @RequestParam(required = false) String search,
+            //排序，預設為created_date、desc
+            @RequestParam(defaultValue = "created_date") String orderBy,
+            @RequestParam(defaultValue = "desc") String sort
     ) {
         ProductQueryParams productQueryParams = new ProductQueryParams();
         productQueryParams.setSearch(search);
         productQueryParams.setCategory(category);
+        productQueryParams.setOrderBy(orderBy);
+        productQueryParams.setSort(sort);
 
         List<ProductEntity> productEntityList = productService.getProducts(productQueryParams);
 

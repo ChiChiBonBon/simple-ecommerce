@@ -44,6 +44,9 @@ public class ProductRepositoryImpl implements ProductRepository {
             productMap.put("search","%" + productQueryParams.getSearch() + "%" );
         }
 
+        //依欄位為排序依據
+        sqlString += " ORDER BY " + productQueryParams.getOrderBy() + " " + productQueryParams.getSort();
+
         List<ProductEntity> productEntityList = namedParameterJdbcTemplate.query(sqlString, productMap, new ProductRowMapper());
         return productEntityList;
     }
