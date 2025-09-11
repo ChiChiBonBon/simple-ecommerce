@@ -99,10 +99,10 @@ public class ProductRepositoryImpl implements ProductRepository {
         productMap.put("stock", productRequestDTO.getStock());
         productMap.put("description", productRequestDTO.getDescription());
 
-        Date date = new Date();
+        Date now = new Date();
 
-        productMap.put("createdDate", date);
-        productMap.put("lastModifiedDate", date);
+        productMap.put("createdDate", now);
+        productMap.put("lastModifiedDate", now);
 
 
         //KeyHolder存放資料庫產生的主鍵
