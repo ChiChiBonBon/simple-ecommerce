@@ -25,6 +25,28 @@ public class OrderItemEntity {
     @Column(name = "amount", nullable = false)
     private BigDecimal amount;
 
+    @Transient// 非資料庫欄位（join/顯示用）
+    private String productName;
+
+    @Transient// 非資料庫欄位（join/顯示用）
+    private String imageUrl;
+
+    public String getProductName() {
+        return productName;
+    }
+
+    public void setProductName(String productName) {
+        this.productName = productName;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
+
     public Integer getOrderItemId() {
         return orderItemId;
     }

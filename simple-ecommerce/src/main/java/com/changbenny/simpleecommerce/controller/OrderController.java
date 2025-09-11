@@ -1,6 +1,7 @@
 package com.changbenny.simpleecommerce.controller;
 
 import com.changbenny.simpleecommerce.dto.CreateOrderRequestDTO;
+import com.changbenny.simpleecommerce.entity.OrderEntity;
 import com.changbenny.simpleecommerce.repository.OrderRepository;
 import com.changbenny.simpleecommerce.service.OrderService;
 import jakarta.validation.Valid;
@@ -24,7 +25,9 @@ public class OrderController {
 
         Integer orderId = orderService.createOrder(userId,createOrderRequestDTO);
 
+        OrderEntity orderEntity = orderService.getOrderById(orderId);
+
         //回傳201狀態碼，後端已成功建立一個新資源
-        return ResponseEntity.status(HttpStatus.CREATED).body(orderId);
+        return ResponseEntity.status(HttpStatus.CREATED).body(orderEntity);
     }
 }

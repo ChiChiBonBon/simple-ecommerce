@@ -1,5 +1,6 @@
 package com.changbenny.simpleecommerce.repository;
 
+import com.changbenny.simpleecommerce.entity.OrderEntity;
 import com.changbenny.simpleecommerce.entity.OrderItemEntity;
 
 import java.math.BigDecimal;
@@ -9,4 +10,8 @@ public interface OrderRepository {
     Integer createOrder(Integer userId, BigDecimal totalAmount);
 
     void  createOrderItems(Integer orderId, List<OrderItemEntity> orderItemEntityList);
+
+    OrderEntity getOrderById(Integer orderId);
+
+    List<OrderItemEntity> getOrderItemsByOrderId(Integer orderId);
 }

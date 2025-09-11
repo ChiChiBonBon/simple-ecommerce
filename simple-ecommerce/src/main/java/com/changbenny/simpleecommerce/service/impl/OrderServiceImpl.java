@@ -2,6 +2,7 @@ package com.changbenny.simpleecommerce.service.impl;
 
 import com.changbenny.simpleecommerce.dto.BuyItemDTO;
 import com.changbenny.simpleecommerce.dto.CreateOrderRequestDTO;
+import com.changbenny.simpleecommerce.entity.OrderEntity;
 import com.changbenny.simpleecommerce.entity.OrderItemEntity;
 import com.changbenny.simpleecommerce.entity.ProductEntity;
 import com.changbenny.simpleecommerce.repository.OrderRepository;
@@ -57,5 +58,16 @@ public class OrderServiceImpl implements OrderService {
         orderRepository.createOrderItems(orderId,orderItemEntityList);
 
         return orderId;
+    }
+
+    @Override
+    public OrderEntity getOrderById(Integer orderId) {
+        OrderEntity orderEntity = orderRepository.getOrderById(orderId);
+
+        List<OrderItemEntity> orderItemEntityList = orderRepository.getOrderItemsByOrderId(orderId);
+
+        orderEntity.setOrderItemEntityList(orderItemEntityList);
+
+        return orderEntity;
     }
 }

@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.List;
 
 @Entity
 @Table(name = "`order`")
@@ -27,6 +28,21 @@ public class OrderEntity {
     @Column(name = "last_modified_date", nullable = false)
     @Temporal(TemporalType.TIMESTAMP)
     private Date lastModifiedDate;
+
+    //訂單中的訂單項目清單
+    @OneToMany
+    @JoinColumn(name = "order_id") // 由子表 order_item 的外鍵關聯到本表
+    private List<OrderItemEntity> orderItemEntityList;
+
+    public List<OrderItemEntity> getOrderItemEntityList() {
+        return orderItemEntityList;
+    }
+
+    public void setOrderItemEntityList(List<OrderItemEntity> orderItemEntityList) {
+        this.orderItemEntityList = orderItemEntityList;
+    }
+
+
 
     public Integer getOrderId() {
         return orderId;

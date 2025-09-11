@@ -1,7 +1,10 @@
 package com.changbenny.simpleecommerce.repository.impl;
 
+import com.changbenny.simpleecommerce.entity.OrderEntity;
 import com.changbenny.simpleecommerce.entity.OrderItemEntity;
 import com.changbenny.simpleecommerce.repository.OrderRepository;
+import com.changbenny.simpleecommerce.rowmapper.OrderItemRowMapper;
+import com.changbenny.simpleecommerce.rowmapper.OrderRowMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -63,4 +66,39 @@ public class OrderRepositoryImpl implements OrderRepository {
             namedParameterJdbcTemplate.update(sql, map);
         }
     }
+
+    @Override
+    public OrderEntity getOrderById(Integer orderId) {
+        String sqlString = " SELECT order_id, user_id, total_amount, created_date, last_modified_date " +
+                           " FROM `order` WHERE order_id = :orderId ";
+
+        Map<String, Object> map = new HashMap<>();
+        map.put("orderId", orderId);
+
+        List<OrderEntity> orderList = namedParameterJdbcTemplate.query(sqlString, map, new OrderRowMapper());
+
+        if (orderList.size() > 0) {
+            return orderList.get(0);
+        } else {
+            return null;
+        }
+    }
+
+    @Override
+    public List<OrderItemEntity> getOrderItemsByOrderId(Integer orderId) {
+        String sql = " SELECT oi.order_item_id, oi.order_id, oi.product_id, oi.quantity, oi.amount, p.product_name, p.image_url " +
+                     " FROM order_item as oi " +
+                     " LEFT JOIN product as p ON oi.product_id = p.product_id " +
+                     " WHERE oi.order_id = :orderId ";
+
+        Map<String, Object> map = new HashMap<>();
+        map.put("orderId", orderId);
+
+        //訂單中的訂單項目清單
+        List<OrderItemEntity> orderItemEntityList = namedParameterJdbcTemplate.query(sql, map, new OrderItemRowMapper());
+
+        return orderItemEntityList;
+    }
+
+
 }
