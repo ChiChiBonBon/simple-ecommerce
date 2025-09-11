@@ -29,6 +29,8 @@ public class UserController {
         UserResponseDTO userResponseDTO = new UserResponseDTO();
         userResponseDTO.setEmail(userEntity.getEmail());
         userResponseDTO.setPassword(userEntity.getPassword());
+        userResponseDTO.setCreatedDate(userEntity.getCreatedDate());
+        userResponseDTO.setLastModifiedDate(userEntity.getLastModifiedDate());
 
         return ResponseEntity.status(HttpStatus.CREATED).body(userResponseDTO);
     }
