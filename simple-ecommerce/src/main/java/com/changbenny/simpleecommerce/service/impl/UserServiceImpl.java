@@ -1,5 +1,6 @@
 package com.changbenny.simpleecommerce.service.impl;
 
+import com.changbenny.simpleecommerce.dto.UserLoginRequestDTO;
 import com.changbenny.simpleecommerce.dto.UserRegisterRequestDTO;
 import com.changbenny.simpleecommerce.entity.UserEntity;
 import com.changbenny.simpleecommerce.repository.UserRepository;
@@ -38,5 +39,23 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserEntity getUserById(Integer userId) {
         return userRepository.getUserById(userId);
+    }
+
+    @Override
+    public UserEntity login(UserLoginRequestDTO userLoginRequestDTO) {
+        UserEntity userEntity = userRepository.getUserByEmail(userLoginRequestDTO.getEmail());
+
+        if(userEntity == null){
+            logger.warn(" 該email {} 尚未註冊",userLoginRequestDTO.getEmail());
+            //尚未註冊的email，丟400
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        }
+
+        if(userEntity.getPassword().equals(userLoginRequestDTO.getPassword())){
+            return userEntity;
+        }else{
+            logger.warn("email {} 的密碼不正確",userEntity.getEmail());
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        }
     }
 }

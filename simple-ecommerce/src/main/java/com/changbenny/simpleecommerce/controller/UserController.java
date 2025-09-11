@@ -1,5 +1,6 @@
 package com.changbenny.simpleecommerce.controller;
 
+import com.changbenny.simpleecommerce.dto.UserLoginRequestDTO;
 import com.changbenny.simpleecommerce.dto.UserRegisterRequestDTO;
 import com.changbenny.simpleecommerce.dto.UserResponseDTO;
 import com.changbenny.simpleecommerce.entity.UserEntity;
@@ -17,7 +18,8 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-    @PostMapping("user/register")
+    //使用者註冊
+    @PostMapping("users/register")
     public ResponseEntity<UserResponseDTO> register(@RequestBody @Valid UserRegisterRequestDTO userRegisterRequestDTO) {
         Integer userId= userService.register(userRegisterRequestDTO);
 
@@ -29,5 +31,21 @@ public class UserController {
         userResponseDTO.setPassword(userEntity.getPassword());
 
         return ResponseEntity.status(HttpStatus.CREATED).body(userResponseDTO);
+    }
+
+    //使用者登入
+    @PostMapping("users/login")
+    public ResponseEntity<UserResponseDTO> login(@RequestBody @Valid UserLoginRequestDTO userLoginRequestDTO) {
+
+        UserEntity userEntity = userService.login(userLoginRequestDTO);
+
+        //ResponseDTO
+        UserResponseDTO userResponseDTO = new UserResponseDTO();
+        userResponseDTO.setEmail(userEntity.getEmail());
+        userResponseDTO.setPassword(userEntity.getPassword());
+        userResponseDTO.setCreatedDate(userEntity.getCreatedDate());
+        userResponseDTO.setLastModifiedDate(userEntity.getLastModifiedDate());
+
+        return ResponseEntity.status(HttpStatus.OK).body(userResponseDTO);
     }
 }
