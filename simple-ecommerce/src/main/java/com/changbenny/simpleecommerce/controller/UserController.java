@@ -1,6 +1,7 @@
 package com.changbenny.simpleecommerce.controller;
 
 import com.changbenny.simpleecommerce.dto.UserRegisterRequestDTO;
+import com.changbenny.simpleecommerce.dto.UserResponseDTO;
 import com.changbenny.simpleecommerce.entity.UserEntity;
 import com.changbenny.simpleecommerce.service.UserService;
 import jakarta.validation.Valid;
@@ -17,12 +18,16 @@ public class UserController {
     private UserService userService;
 
     @PostMapping("user/register")
-    public ResponseEntity<UserEntity> register(@RequestBody @Valid UserRegisterRequestDTO userRegisterRequestDTO) {
+    public ResponseEntity<UserResponseDTO> register(@RequestBody @Valid UserRegisterRequestDTO userRegisterRequestDTO) {
         Integer userId= userService.register(userRegisterRequestDTO);
 
         UserEntity userEntity = userService.getUserById(userId);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(userEntity);
-    }
+        //ResponseDTO
+        UserResponseDTO userResponseDTO = new UserResponseDTO();
+        userResponseDTO.setEmail(userEntity.getEmail());
+        userResponseDTO.setPassword(userEntity.getPassword());
 
+        return ResponseEntity.status(HttpStatus.CREATED).body(userResponseDTO);
+    }
 }

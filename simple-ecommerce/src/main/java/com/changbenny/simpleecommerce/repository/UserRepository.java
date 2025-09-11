@@ -7,4 +7,6 @@ public interface UserRepository {
     Integer createUser(UserRegisterRequestDTO userRegisterRequestDTO);
 
     UserEntity getUserById(Integer userId);
+
+    UserEntity getUserByEmail(String email);
 }
