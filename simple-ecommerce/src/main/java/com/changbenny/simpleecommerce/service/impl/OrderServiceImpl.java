@@ -2,6 +2,7 @@ package com.changbenny.simpleecommerce.service.impl;
 
 import com.changbenny.simpleecommerce.dto.BuyItemDTO;
 import com.changbenny.simpleecommerce.dto.CreateOrderRequestDTO;
+import com.changbenny.simpleecommerce.dto.OrderQueryParams;
 import com.changbenny.simpleecommerce.entity.OrderEntity;
 import com.changbenny.simpleecommerce.entity.OrderItemEntity;
 import com.changbenny.simpleecommerce.entity.ProductEntity;
@@ -102,5 +103,27 @@ public class OrderServiceImpl implements OrderService {
         orderEntity.setOrderItemEntityList(orderItemEntityList);
 
         return orderEntity;
+    }
+
+    @Override
+    public Integer countOrders(OrderQueryParams orderQueryParams) {
+        return orderRepository.countOrders(orderQueryParams);
+    }
+
+    @Override
+    public List<OrderEntity> getOrders(OrderQueryParams orderQueryParams) {
+        // 根據查詢參數，先撈出所有符合條件的訂單（只包含訂單主檔，不含訂單中的訂單項目清單）
+        List<OrderEntity> orderList = orderRepository.getOrders(orderQueryParams);
+
+        // 對每一張訂單，額外查詢它的訂單項目清單
+        for (OrderEntity order : orderList) {
+            // 根據訂單ID查詢所有的訂單項目清單
+            List<OrderItemEntity> orderItemEntityList = orderRepository.getOrderItemsByOrderId(order.getOrderId());
+            // 將查到的訂單項目清單，塞進對應的訂單物件裡
+            order.setOrderItemEntityList(orderItemEntityList);
+        }
+
+        // 回傳訂單清單
+        return orderList;
     }
 }

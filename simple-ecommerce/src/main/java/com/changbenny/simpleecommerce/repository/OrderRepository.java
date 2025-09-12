@@ -1,5 +1,6 @@
 package com.changbenny.simpleecommerce.repository;
 
+import com.changbenny.simpleecommerce.dto.OrderQueryParams;
 import com.changbenny.simpleecommerce.entity.OrderEntity;
 import com.changbenny.simpleecommerce.entity.OrderItemEntity;
 
@@ -14,4 +15,8 @@ public interface OrderRepository {
     OrderEntity getOrderById(Integer orderId);
 
     List<OrderItemEntity> getOrderItemsByOrderId(Integer orderId);
+
+    Integer countOrders(OrderQueryParams orderQueryParams);
+
+    List<OrderEntity> getOrders(OrderQueryParams orderQueryParams);
 }

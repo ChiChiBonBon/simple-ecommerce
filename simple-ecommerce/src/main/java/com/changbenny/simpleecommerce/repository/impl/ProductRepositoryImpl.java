@@ -26,7 +26,7 @@ public class ProductRepositoryImpl implements ProductRepository {
     @Override
     public Integer countProducts(ProductQueryParams productQueryParams) {
         String sqlString = " SELECT COUNT(*)" +
-                " FROM product WHERE 1=1 ";
+                           " FROM product WHERE 1=1 ";
 
         Map<String, Object> productMap = new HashMap<>();
 

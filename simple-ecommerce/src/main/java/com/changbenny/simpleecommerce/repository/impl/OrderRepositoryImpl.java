@@ -1,5 +1,6 @@
 package com.changbenny.simpleecommerce.repository.impl;
 
+import com.changbenny.simpleecommerce.dto.OrderQueryParams;
 import com.changbenny.simpleecommerce.entity.OrderEntity;
 import com.changbenny.simpleecommerce.entity.OrderItemEntity;
 import com.changbenny.simpleecommerce.repository.OrderRepository;
@@ -99,5 +100,49 @@ public class OrderRepositoryImpl implements OrderRepository {
         return orderItemEntityList;
     }
 
+    @Override
+    public Integer countOrders(OrderQueryParams orderQueryParams) {
+        String sqlString = "SELECT count(*) FROM `order` WHERE 1=1";
 
+        Map<String, Object> orderMap = new HashMap<>();
+
+        // 查詢條件
+        sqlString = addFilteringSql(sqlString, orderMap, orderQueryParams);
+
+        Integer total = namedParameterJdbcTemplate.queryForObject(sqlString, orderMap, Integer.class);
+
+        return total;
+    }
+
+    @Override
+    public List<OrderEntity> getOrders(OrderQueryParams orderQueryParams) {
+        String sqlString = " SELECT order_id, user_id,total_amount, created_date, last_modified_date " +
+                           " FROM `order` WHERE 1=1 ";
+
+        Map<String, Object> orderMap = new HashMap<>();
+
+        // 查詢條件
+        sqlString = addFilteringSql(sqlString, orderMap, orderQueryParams);
+
+        // 創建日期由新到舊排序
+        sqlString = sqlString + " ORDER BY created_date DESC ";
+
+        // 分頁
+        sqlString = sqlString + " LIMIT :limit OFFSET :offset ";
+        orderMap.put("limit", orderQueryParams.getLimit());
+        orderMap.put("offset", orderQueryParams.getOffset());
+
+        List<OrderEntity> orderEntityList = namedParameterJdbcTemplate.query(sqlString, orderMap, new OrderRowMapper());
+
+        return orderEntityList;
+    }
+
+    private String addFilteringSql(String sqlString, Map<String, Object> map, OrderQueryParams orderQueryParams) {
+        if (orderQueryParams.getUserId() != null) {
+            sqlString = sqlString + " AND user_id = :userId";
+            map.put("userId", orderQueryParams.getUserId());
+        }
+
+        return sqlString;
+    }
 }
