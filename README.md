@@ -36,4 +36,6 @@
 - RESTful API 設計 (UserController、ProductController、OrderController)
 - 統一回傳格式 (PageResponseDTO)
 
+### JWT
+
 Swagger UI :http://localhost:8080/swagger-ui/index.html<br> 
