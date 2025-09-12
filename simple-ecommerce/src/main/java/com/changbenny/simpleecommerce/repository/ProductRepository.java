@@ -19,4 +19,6 @@ public interface ProductRepository {
     void updateProduct(Integer productId, ProductRequestDTO productRequestDTO);
 
     void deleteProductById(Integer productId);
+
+    void updateStock(Integer productId, Integer stock);
 }

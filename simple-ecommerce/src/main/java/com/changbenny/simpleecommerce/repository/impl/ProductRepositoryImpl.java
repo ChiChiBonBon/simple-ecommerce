@@ -1,6 +1,5 @@
 package com.changbenny.simpleecommerce.repository.impl;
 
-import com.changbenny.simpleecommerce.constant.ProductCategory;
 import com.changbenny.simpleecommerce.dto.ProductQueryParams;
 import com.changbenny.simpleecommerce.dto.ProductRequestDTO;
 import com.changbenny.simpleecommerce.entity.ProductEntity;
@@ -146,6 +145,19 @@ public class ProductRepositoryImpl implements ProductRepository {
         Map<String,Object> productMap = new HashMap<>();
         productMap.put("productId", productId);
         namedParameterJdbcTemplate.update(sqlString,productMap);
+    }
+
+    @Override
+    public void updateStock(Integer productId, Integer stock) {
+        String sqlString = " UPDATE product SET stock = :stock, last_modified_date = :lastModifiedDate " +
+                           " WHERE product_id = :productId ";
+
+        Map<String, Object> productMap = new HashMap<>();
+        productMap.put("productId", productId);
+        productMap.put("stock", stock);
+        productMap.put("lastModifiedDate", new Date());
+
+        namedParameterJdbcTemplate.update(sqlString, productMap);
     }
 
     //重構重覆程式碼
