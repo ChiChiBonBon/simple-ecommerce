@@ -3,6 +3,7 @@ package com.changbenny.simpleecommerce.service;
 import com.changbenny.simpleecommerce.constant.ProductCategory;
 import com.changbenny.simpleecommerce.dto.ProductQueryParams;
 import com.changbenny.simpleecommerce.dto.ProductRequestDTO;
+import com.changbenny.simpleecommerce.dto.ProductResponseDTO;
 import com.changbenny.simpleecommerce.entity.ProductEntity;
 
 import java.util.List;
@@ -21,4 +22,6 @@ public interface ProductService {
     void deleteProductById(Integer productId);
 
     void updateStock(Integer productId, Integer stock);
+
+    public ProductResponseDTO convertToDTO(ProductEntity entity);
 }

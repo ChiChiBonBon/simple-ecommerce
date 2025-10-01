@@ -28,7 +28,7 @@ public class AuthController {
         return ResponseEntity.status(HttpStatus.CREATED).body(authResponseDTO);
     }
 
-    @PostMapping("/auth/login")
+    @PostMapping("/login")
     public ResponseEntity<AuthResponseDTO> login(@RequestBody @Valid UserLoginRequestDTO userLoginRequestDTO) {
         //帳密驗證：內部已做「email 是否存在」與「MD5 雜湊比對」
         UserEntity userEntity = userService.login(userLoginRequestDTO);

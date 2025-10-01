@@ -3,6 +3,7 @@ package com.changbenny.simpleecommerce.service.impl;
 import com.changbenny.simpleecommerce.constant.ProductCategory;
 import com.changbenny.simpleecommerce.dto.ProductQueryParams;
 import com.changbenny.simpleecommerce.dto.ProductRequestDTO;
+import com.changbenny.simpleecommerce.dto.ProductResponseDTO;
 import com.changbenny.simpleecommerce.entity.ProductEntity;
 import com.changbenny.simpleecommerce.repository.ProductRepository;
 import com.changbenny.simpleecommerce.service.ProductService;
@@ -49,5 +50,19 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public void updateStock(Integer productId, Integer stock) {
         productRepository.updateStock(productId,stock);
+    }
+
+    public ProductResponseDTO convertToDTO(ProductEntity entity) {
+        ProductResponseDTO dto = new ProductResponseDTO();
+        dto.setProductId(entity.getProductId());
+        dto.setProductName(entity.getProductName());
+        dto.setCategory(entity.getCategory());
+        dto.setImageUrl(entity.getImageUrl());
+        dto.setPrice(entity.getPrice());
+        dto.setStock(entity.getStock());
+        dto.setDescription(entity.getDescription());
+        dto.setCreatedDate(entity.getCreatedDate());
+        dto.setLastModifiedDate(entity.getLastModifiedDate());
+        return dto;
     }
 }

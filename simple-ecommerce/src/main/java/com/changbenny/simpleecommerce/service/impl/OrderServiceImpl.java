@@ -1,8 +1,6 @@
 package com.changbenny.simpleecommerce.service.impl;
 
-import com.changbenny.simpleecommerce.dto.BuyItemDTO;
-import com.changbenny.simpleecommerce.dto.CreateOrderRequestDTO;
-import com.changbenny.simpleecommerce.dto.OrderQueryParams;
+import com.changbenny.simpleecommerce.dto.*;
 import com.changbenny.simpleecommerce.entity.OrderEntity;
 import com.changbenny.simpleecommerce.entity.OrderItemEntity;
 import com.changbenny.simpleecommerce.entity.ProductEntity;
@@ -22,6 +20,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -30,7 +29,6 @@ public class OrderServiceImpl implements OrderService {
 
     @Autowired
     private OrderRepository orderRepository;
-
     @Autowired
     private ProductService productService;
     @Autowired
@@ -127,5 +125,35 @@ public class OrderServiceImpl implements OrderService {
 
         // 回傳訂單清單
         return orderList;
+    }
+
+    public OrderResponseDTO convertToDTO(OrderEntity orderEntity) {
+        OrderResponseDTO orderResponseDTO = new OrderResponseDTO();
+        orderResponseDTO.setOrderId(orderEntity.getOrderId());
+        orderResponseDTO.setUserId(orderEntity.getUserId());
+        orderResponseDTO.setTotalAmount(orderEntity.getTotalAmount());
+        orderResponseDTO.setCreatedDate(orderEntity.getCreatedDate());
+        orderResponseDTO.setLastModifiedDate(orderEntity.getLastModifiedDate());
+
+        // 轉換 OrderItem List
+        if (orderEntity.getOrderItemEntityList() != null) {
+            List<OrderItemDTO> orderItemDTOList = orderEntity.getOrderItemEntityList().stream()
+                    .map(this::convertOrderItemToDTO)
+                    .collect(Collectors.toList());
+            orderResponseDTO.setOrderItemList(orderItemDTOList);
+        }
+
+        return orderResponseDTO;
+    }
+
+    private OrderItemDTO convertOrderItemToDTO(OrderItemEntity entity) {
+        OrderItemDTO orderItemDTO = new OrderItemDTO();
+        orderItemDTO.setOrderItemId(entity.getOrderItemId());
+        orderItemDTO.setProductId(entity.getProductId());
+        orderItemDTO.setProductName(entity.getProductName());
+        orderItemDTO.setImageUrl(entity.getImageUrl());
+        orderItemDTO.setQuantity(entity.getQuantity());
+        orderItemDTO.setAmount(entity.getAmount());
+        return orderItemDTO;
     }
 }

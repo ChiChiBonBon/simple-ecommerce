@@ -4,8 +4,8 @@ import com.changbenny.simpleecommerce.dto.CreateOrderRequestDTO;
 import com.changbenny.simpleecommerce.dto.OrderQueryParams;
 import com.changbenny.simpleecommerce.dto.PageResponseDTO;
 import com.changbenny.simpleecommerce.entity.OrderEntity;
-import com.changbenny.simpleecommerce.repository.OrderRepository;
 import com.changbenny.simpleecommerce.service.OrderService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
+@SecurityRequirement(name = "JWT")
 public class OrderController {
     @Autowired
     private OrderService orderService;
@@ -25,6 +26,10 @@ public class OrderController {
     @PostMapping("/users/{userId}/orders")
     public ResponseEntity<?> createOrder(@PathVariable Integer userId,
                                          @RequestBody @Valid CreateOrderRequestDTO createOrderRequestDTO) {
+
+        System.out.println("========== Controller: createOrder ==========");
+        System.out.println("Received userId: " + userId);
+        System.out.println("Received request: " + createOrderRequestDTO);
 
         Integer orderId = orderService.createOrder(userId,createOrderRequestDTO);
 

@@ -4,8 +4,10 @@ import com.changbenny.simpleecommerce.constant.ProductCategory;
 import com.changbenny.simpleecommerce.dto.PageResponseDTO;
 import com.changbenny.simpleecommerce.dto.ProductQueryParams;
 import com.changbenny.simpleecommerce.dto.ProductRequestDTO;
+import com.changbenny.simpleecommerce.dto.ProductResponseDTO;
 import com.changbenny.simpleecommerce.entity.ProductEntity;
 import com.changbenny.simpleecommerce.service.ProductService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -16,6 +18,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Validated
 @RestController
@@ -25,7 +28,7 @@ public class ProductController {
 
     //查詢所有商品
     @PostMapping("/products")
-    public ResponseEntity<PageResponseDTO<ProductEntity>> getAllProducts(
+    public ResponseEntity<PageResponseDTO<ProductResponseDTO>> getAllProducts(
             //查詢條件，非必填
             @RequestParam(required = false) ProductCategory category,
             @RequestParam(required = false) String search,
@@ -46,26 +49,33 @@ public class ProductController {
 
         List<ProductEntity> productEntityList = productService.getProducts(productQueryParams);
 
+        // Entity 轉 DTO
+        List<ProductResponseDTO> productDTOList = productEntityList.stream()
+                .map(productService::convertToDTO)
+                .collect(Collectors.toList());
+
         Integer total = productService.countProducts(productQueryParams);
 
-        //ResponseDTO
-        PageResponseDTO<ProductEntity> pageResponseDTO = new PageResponseDTO<>();
+        // 改用 ProductResponseDTO
+        PageResponseDTO<ProductResponseDTO> pageResponseDTO = new PageResponseDTO<>();
         pageResponseDTO.setLimit(limit);
         pageResponseDTO.setOffset(offset);
         pageResponseDTO.setTotal(total);
-        pageResponseDTO.setResults(productEntityList);
+        pageResponseDTO.setResults(productDTOList);
 
         return ResponseEntity.status(HttpStatus.OK).body(pageResponseDTO);
     }
 
     //依商品ID查找
     @PostMapping("/products/search/{productId}")
-    public ResponseEntity<?> getProductById(@PathVariable Integer productId) {
+    public ResponseEntity<ProductResponseDTO> getProductById(@PathVariable Integer productId) {
+        //entity轉換dto
         ProductEntity productEntity = productService.getProductById(productId);
+        ProductResponseDTO productResponseDTO = productService.convertToDTO(productEntity);
 
-        if(productEntity != null){
+        if(productResponseDTO != null){
             //回傳200狀態碼，前端請求成功並後端回傳結果
-            return ResponseEntity.status(HttpStatus.OK).body(productEntity);
+            return ResponseEntity.status(HttpStatus.OK).body(productResponseDTO);
         }else{
             //回傳404狀態碼，前端請求的資源不存在
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
@@ -74,19 +84,23 @@ public class ProductController {
 
     //商品新增
     @PostMapping("/products/create")
-    public ResponseEntity<?> createProduct(@RequestBody @Valid ProductRequestDTO productRequestDTO) {
+    @SecurityRequirement(name = "JWT")
+    public ResponseEntity<ProductResponseDTO> createProduct(@RequestBody @Valid ProductRequestDTO productRequestDTO) {
         Integer productId = productService.createProduct(productRequestDTO);
 
         ProductEntity productEntity = productService.getProductById(productId);
+        ProductResponseDTO productResponseDTO = productService.convertToDTO(productEntity);
 
         //回傳201狀態碼，後端已成功建立一個新資源
-        return ResponseEntity.status(HttpStatus.CREATED).body(productEntity);
+        return ResponseEntity.status(HttpStatus.CREATED).body(productResponseDTO);
     }
 
     //商品修改
     @PostMapping("/products/update/{productId}")
-    public ResponseEntity<?> updateProduct(@PathVariable Integer productId,
+    @SecurityRequirement(name = "JWT")
+    public ResponseEntity<ProductResponseDTO> updateProduct(@PathVariable Integer productId,
                                            @RequestBody @Valid ProductRequestDTO productRequestDTO) {
+
         ProductEntity productEntity = productService.getProductById(productId);
 
         //找不到要修改的商品，則回傳404
@@ -98,17 +112,22 @@ public class ProductController {
         productService.updateProduct(productId,productRequestDTO);
 
         ProductEntity updatedProductEntity = productService.getProductById(productId);
+        ProductResponseDTO productResponseDTO = productService.convertToDTO(updatedProductEntity);
 
         //回傳200和修改後的商品資料
-        return ResponseEntity.status(HttpStatus.OK).body(updatedProductEntity);
+        return ResponseEntity.status(HttpStatus.OK).body(productResponseDTO);
     }
 
     //商品刪除
     @PostMapping("/products/delete/{productId}")
-    public ResponseEntity<?> deleteProductById(@PathVariable Integer productId) {
+    @SecurityRequirement(name = "JWT")
+    //Void表示明確表示沒有 body
+    public ResponseEntity<Void> deleteProductById(@PathVariable Integer productId) {
         productService.deleteProductById(productId);
 
         //回傳204狀態碼，不回傳body
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }
+
+
