@@ -3,7 +3,6 @@ package com.changbenny.simpleecommerce.controller;
 import com.changbenny.simpleecommerce.dto.UserLoginRequestDTO;
 import com.changbenny.simpleecommerce.dto.UserRegisterRequestDTO;
 import com.changbenny.simpleecommerce.dto.UserResponseDTO;
-import com.changbenny.simpleecommerce.entity.UserEntity;
 import com.changbenny.simpleecommerce.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,15 +22,9 @@ public class UserController {
     public ResponseEntity<UserResponseDTO> register(@RequestBody @Valid UserRegisterRequestDTO userRegisterRequestDTO) {
         Integer userId= userService.register(userRegisterRequestDTO);
 
-        UserEntity userEntity = userService.getUserById(userId);
+        UserResponseDTO userResponseDTO = userService.getUserById(userId);
 
         //ResponseDTO
-        UserResponseDTO userResponseDTO = new UserResponseDTO();
-        userResponseDTO.setEmail(userEntity.getEmail());
-        userResponseDTO.setPassword(userEntity.getPassword());
-        userResponseDTO.setCreatedDate(userEntity.getCreatedDate());
-        userResponseDTO.setLastModifiedDate(userEntity.getLastModifiedDate());
-
         return ResponseEntity.status(HttpStatus.CREATED).body(userResponseDTO);
     }
 
@@ -39,15 +32,9 @@ public class UserController {
     @PostMapping("users/login")
     public ResponseEntity<UserResponseDTO> login(@RequestBody @Valid UserLoginRequestDTO userLoginRequestDTO) {
 
-        UserEntity userEntity = userService.login(userLoginRequestDTO);
+        UserResponseDTO userResponseDTO = userService.login(userLoginRequestDTO);
 
         //ResponseDTO
-        UserResponseDTO userResponseDTO = new UserResponseDTO();
-        userResponseDTO.setEmail(userEntity.getEmail());
-        userResponseDTO.setPassword(userEntity.getPassword());
-        userResponseDTO.setCreatedDate(userEntity.getCreatedDate());
-        userResponseDTO.setLastModifiedDate(userEntity.getLastModifiedDate());
-
         return ResponseEntity.status(HttpStatus.OK).body(userResponseDTO);
     }
 }

@@ -18,7 +18,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Validated
 @RestController
@@ -47,12 +46,7 @@ public class ProductController {
         productQueryParams.setLimit(limit);
         productQueryParams.setOffset(offset);
 
-        List<ProductEntity> productEntityList = productService.getProducts(productQueryParams);
-
-        // Entity 轉 DTO
-        List<ProductResponseDTO> productDTOList = productEntityList.stream()
-                .map(productService::convertToDTO)
-                .collect(Collectors.toList());
+        List<ProductResponseDTO> productResponseDTOS = productService.getProducts(productQueryParams);
 
         Integer total = productService.countProducts(productQueryParams);
 
@@ -61,7 +55,7 @@ public class ProductController {
         pageResponseDTO.setLimit(limit);
         pageResponseDTO.setOffset(offset);
         pageResponseDTO.setTotal(total);
-        pageResponseDTO.setResults(productDTOList);
+        pageResponseDTO.setResults(productResponseDTOS);
 
         return ResponseEntity.status(HttpStatus.OK).body(pageResponseDTO);
     }
@@ -69,9 +63,8 @@ public class ProductController {
     //依商品ID查找
     @PostMapping("/products/search/{productId}")
     public ResponseEntity<ProductResponseDTO> getProductById(@PathVariable Integer productId) {
-        //entity轉換dto
-        ProductEntity productEntity = productService.getProductById(productId);
-        ProductResponseDTO productResponseDTO = productService.convertToDTO(productEntity);
+        //查詢到的entity轉換dto
+        ProductResponseDTO productResponseDTO = productService.getProductById(productId);
 
         if(productResponseDTO != null){
             //回傳200狀態碼，前端請求成功並後端回傳結果
@@ -88,8 +81,7 @@ public class ProductController {
     public ResponseEntity<ProductResponseDTO> createProduct(@RequestBody @Valid ProductRequestDTO productRequestDTO) {
         Integer productId = productService.createProduct(productRequestDTO);
 
-        ProductEntity productEntity = productService.getProductById(productId);
-        ProductResponseDTO productResponseDTO = productService.convertToDTO(productEntity);
+        ProductResponseDTO productResponseDTO = productService.getProductById(productId);
 
         //回傳201狀態碼，後端已成功建立一個新資源
         return ResponseEntity.status(HttpStatus.CREATED).body(productResponseDTO);
@@ -101,21 +93,20 @@ public class ProductController {
     public ResponseEntity<ProductResponseDTO> updateProduct(@PathVariable Integer productId,
                                            @RequestBody @Valid ProductRequestDTO productRequestDTO) {
 
-        ProductEntity productEntity = productService.getProductById(productId);
+        ProductResponseDTO productResponseDTO = productService.getProductById(productId);
 
         //找不到要修改的商品，則回傳404
-        if(productEntity == null){
+        if(productResponseDTO == null){
             return ResponseEntity.notFound().build();
         }
 
         //修改商品
         productService.updateProduct(productId,productRequestDTO);
 
-        ProductEntity updatedProductEntity = productService.getProductById(productId);
-        ProductResponseDTO productResponseDTO = productService.convertToDTO(updatedProductEntity);
+        ProductResponseDTO updatedProductResponseDTO = productService.getProductById(productId);
 
         //回傳200和修改後的商品資料
-        return ResponseEntity.status(HttpStatus.OK).body(productResponseDTO);
+        return ResponseEntity.status(HttpStatus.OK).body(updatedProductResponseDTO);
     }
 
     //商品刪除
