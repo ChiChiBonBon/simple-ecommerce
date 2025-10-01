@@ -12,19 +12,19 @@ import java.util.List;
 @Schema(description = "訂單回應 DTO")
 public class OrderResponseDTO {
 
-    @Schema(description = "訂單ID")
+    @Schema(description = "訂單 ID", example = "1")
     private Integer orderId;
 
-    @Schema(description = "用戶ID")
+    @Schema(description = "使用者 ID", example = "1")
     private Integer userId;
 
-    @Schema(description = "訂單總金額")
+    @Schema(description = "訂單總金額", example = "59800.00")
     private BigDecimal totalAmount;
 
     @Schema(description = "訂單明細列表")
     private List<OrderItemDTO> orderItemList;  // ← 這裡是 List
 
-    @Schema(description = "建立時間")
+    @Schema(description = "最後修改時間", example = "2025-10-01 12:00:00")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Taipei")
     private Date createdDate;
 
