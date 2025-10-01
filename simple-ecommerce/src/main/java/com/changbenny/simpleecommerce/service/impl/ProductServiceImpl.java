@@ -1,6 +1,5 @@
 package com.changbenny.simpleecommerce.service.impl;
 
-import com.changbenny.simpleecommerce.constant.ProductCategory;
 import com.changbenny.simpleecommerce.dto.ProductQueryParams;
 import com.changbenny.simpleecommerce.dto.ProductRequestDTO;
 import com.changbenny.simpleecommerce.dto.ProductResponseDTO;
@@ -11,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class ProductServiceImpl implements ProductService {
@@ -23,13 +23,13 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public List<ProductEntity> getProducts(ProductQueryParams productQueryParams) {
-        return productRepository.getProducts(productQueryParams);
+    public List<ProductResponseDTO> getProducts(ProductQueryParams productQueryParams) {
+        return convertToDTOList(productRepository.getProducts(productQueryParams));
     }
 
     @Override
-    public ProductEntity getProductById(Integer productId) {
-        return  productRepository.getProductById(productId);
+    public ProductResponseDTO getProductById(Integer productId) {
+        return  convertToDTO(productRepository.getProductById(productId));
     }
 
     @Override
@@ -64,5 +64,12 @@ public class ProductServiceImpl implements ProductService {
         dto.setCreatedDate(entity.getCreatedDate());
         dto.setLastModifiedDate(entity.getLastModifiedDate());
         return dto;
+    }
+
+    @Override
+    public List<ProductResponseDTO> convertToDTOList(List<ProductEntity> productEntityList) {
+        return productEntityList.stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
     }
 }

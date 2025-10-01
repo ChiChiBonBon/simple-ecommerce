@@ -11,9 +11,9 @@ import java.util.List;
 public interface ProductService {
     Integer countProducts(ProductQueryParams productQueryParams);
 
-    List<ProductEntity> getProducts(ProductQueryParams productQueryParams);
+    List<ProductResponseDTO> getProducts(ProductQueryParams productQueryParams);
 
-    ProductEntity getProductById(Integer productId);
+    ProductResponseDTO getProductById(Integer productId);
 
     Integer createProduct(ProductRequestDTO productRequestDTO);
 
@@ -24,4 +24,6 @@ public interface ProductService {
     void updateStock(Integer productId, Integer stock);
 
     public ProductResponseDTO convertToDTO(ProductEntity entity);
+
+    public List<ProductResponseDTO> convertToDTOList(List<ProductEntity> productEntityList);
 }

@@ -2,6 +2,7 @@ package com.changbenny.simpleecommerce.service.impl;
 
 import com.changbenny.simpleecommerce.dto.UserLoginRequestDTO;
 import com.changbenny.simpleecommerce.dto.UserRegisterRequestDTO;
+import com.changbenny.simpleecommerce.dto.UserResponseDTO;
 import com.changbenny.simpleecommerce.entity.UserEntity;
 import com.changbenny.simpleecommerce.repository.UserRepository;
 import com.changbenny.simpleecommerce.service.UserService;
@@ -9,8 +10,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.util.DigestUtils;
 import org.springframework.web.server.ResponseStatusException;
 
 @Service
@@ -22,6 +23,9 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     @Override
     public Integer register(UserRegisterRequestDTO userRegisterRequestDTO) {
         //檢查註冊的email
@@ -32,8 +36,10 @@ public class UserServiceImpl implements UserService {
             //重覆註冊的email，丟400
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
-        //使用MD5生成密碼的雜湊值，並回傳成16進位字串
-        String hashedPassword = DigestUtils.md5DigestAsHex(userRegisterRequestDTO.getPassword().getBytes());
+
+        //用 BCrypt（Spring Security 內建）
+        // 註冊時
+        String hashedPassword = passwordEncoder.encode(userRegisterRequestDTO.getPassword());
         userRegisterRequestDTO.setPassword(hashedPassword);
 
         //創建帳號
@@ -41,30 +47,45 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserEntity getUserById(Integer userId) {
-        return userRepository.getUserById(userId);
+    public UserResponseDTO getUserById(Integer userId) {
+        UserEntity userEntity =  userRepository.getUserById(userId);
+
+        if(userEntity == null){
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND,"使用者不存在");
+        }
+
+        return convertToDTO(userEntity);
     }
 
     @Override
-    public UserEntity login(UserLoginRequestDTO userLoginRequestDTO) {
+    public UserResponseDTO login(UserLoginRequestDTO userLoginRequestDTO) {
         UserEntity userEntity = userRepository.getUserByEmail(userLoginRequestDTO.getEmail());
 
         //檢查user是否存在
         if(userEntity == null){
             logger.warn(" 該email {} 尚未註冊",userLoginRequestDTO.getEmail());
-            //尚未註冊的email，丟400
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+            //尚未註冊的email
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND,"使用者不存在");
         }
-
-        //使用MD5生成密碼的雜湊值，並回傳成16進位字串
-        String hashedPassword = DigestUtils.md5DigestAsHex(userLoginRequestDTO.getPassword().getBytes());
 
         //比較密碼
-        if(userEntity.getPassword().equals(hashedPassword)){
-            return userEntity;
+        if(passwordEncoder.matches(
+                userLoginRequestDTO.getPassword(),  // 使用者輸入的明文
+                userEntity.getPassword()            // 資料庫的加密密碼
+        )){
+            return convertToDTO(userEntity);
         }else{
-            logger.warn("email {} 的密碼不正確",userEntity.getEmail());
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+            logger.warn("登入失敗: email {}",userEntity.getEmail());
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,"帳號或密碼錯誤");
         }
+    }
+
+    private UserResponseDTO convertToDTO(UserEntity entity) {
+        UserResponseDTO dto = new UserResponseDTO();
+        dto.setUserId(entity.getUserId());
+        dto.setEmail(entity.getEmail());
+        dto.setCreatedDate(entity.getCreatedDate());
+        dto.setLastModifiedDate(entity.getLastModifiedDate());
+        return dto;
     }
 }

@@ -39,9 +39,9 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public Integer createOrder(Integer userId, CreateOrderRequestDTO createOrderRequestDTO) {
         //檢查user是否存在
-        UserEntity userEntity = userService.getUserById(userId);
+        UserResponseDTO userResponseDTO = userService.getUserById(userId);
 
-        if (userEntity == null) {
+        if (userResponseDTO == null) {
             //userId不存在，回傳400
             log.warn("該userId {} 不存在", userId);
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
@@ -52,27 +52,27 @@ public class OrderServiceImpl implements OrderService {
         List<OrderItemEntity> orderItemEntityList = new ArrayList<>();
 
         for(BuyItemDTO buyItemDTO : createOrderRequestDTO.getBuyItemDTOList()){
-            ProductEntity productEntity = productService.getProductById(buyItemDTO.getProductId());
+            ProductResponseDTO productResponseDTO = productService.getProductById(buyItemDTO.getProductId());
 
             // 檢查 product 是否存在、庫存是否足夠
-            if (productEntity == null) {
+            if (productResponseDTO == null) {
                 //商品不存在，回傳400
                 log.warn("商品ID {} 不存在", buyItemDTO.getProductId());
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
-            } else if (productEntity.getStock() < buyItemDTO.getQuantity()) {
+            } else if (productResponseDTO.getStock() < buyItemDTO.getQuantity()) {
                 //商品庫存不足，回傳400
                 log.warn("商品ID {} 庫存數量不足，無法購買。剩餘庫存 {}，欲購買數量 {}",
-                        buyItemDTO.getProductId(), productEntity.getStock(), buyItemDTO.getQuantity());
+                        buyItemDTO.getProductId(), productResponseDTO.getStock(), buyItemDTO.getQuantity());
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
             }
 
             // 扣除商品庫存
-            productService.updateStock(productEntity.getProductId(),
-                    productEntity.getStock() - buyItemDTO.getQuantity());
+            productService.updateStock(productResponseDTO.getProductId(),
+                    productResponseDTO.getStock() - buyItemDTO.getQuantity());
 
             //計算總價錢
-            BigDecimal amount = productEntity.getPrice()
-                                             .multiply(BigDecimal.valueOf(buyItemDTO.getQuantity()));
+            BigDecimal amount = productResponseDTO.getPrice()
+                                                  .multiply(BigDecimal.valueOf(buyItemDTO.getQuantity()));
             //BigDecimal型別相加
             totalAmount = totalAmount.add(amount);
 
@@ -95,14 +95,14 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public OrderEntity getOrderById(Integer orderId) {
+    public OrderResponseDTO getOrderById(Integer orderId) {
         OrderEntity orderEntity = orderRepository.getOrderById(orderId);
 
         List<OrderItemEntity> orderItemEntityList = orderRepository.getOrderItemsByOrderId(orderId);
 
         orderEntity.setOrderItemEntityList(orderItemEntityList);
 
-        return orderEntity;
+        return convertToDTO(orderEntity);
     }
 
     @Override
@@ -111,7 +111,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public List<OrderEntity> getOrders(OrderQueryParams orderQueryParams) {
+    public List<OrderResponseDTO> getOrders(OrderQueryParams orderQueryParams) {
         // 根據查詢參數，先撈出所有符合條件的訂單（只包含訂單主檔，不含訂單中的訂單項目清單）
         List<OrderEntity> orderList = orderRepository.getOrders(orderQueryParams);
 
@@ -124,7 +124,7 @@ public class OrderServiceImpl implements OrderService {
         }
 
         // 回傳訂單清單
-        return orderList;
+        return convertToDTOList(orderList);
     }
 
     public OrderResponseDTO convertToDTO(OrderEntity orderEntity) {
@@ -155,5 +155,11 @@ public class OrderServiceImpl implements OrderService {
         orderItemDTO.setQuantity(entity.getQuantity());
         orderItemDTO.setAmount(entity.getAmount());
         return orderItemDTO;
+    }
+
+    private List<OrderResponseDTO> convertToDTOList(List<OrderEntity> orderEntityList) {
+        return orderEntityList.stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
     }
 }
