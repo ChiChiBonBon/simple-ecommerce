@@ -48,7 +48,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // 3.1 認證相關 API（註冊、登入）→ 無需攔截
                         // 放行認證端點
-                        .requestMatchers("/auth/register", "/auth/login").permitAll()
+                        .requestMatchers("/auth/register", "/auth/login","/auth/forgot-password","/auth/reset-password").permitAll()
                         .requestMatchers("/users/register", "/users/login").permitAll()
 
                         // 3.2 Swagger 文件相關 → 無需攔截
@@ -58,6 +58,10 @@ public class SecurityConfig {
                         // 3.3 商品查詢相關 → 可公開訪問
                         // 放行公開的商品查詢
                         .requestMatchers("/products/**").permitAll()
+
+                        // 3.4 外部API相關 → 可公開訪問
+                        // 食藥署新聞（公開）
+                        .requestMatchers("/fda/news").permitAll()
 
                         // 其他都需要驗證
                         .anyRequest().authenticated()

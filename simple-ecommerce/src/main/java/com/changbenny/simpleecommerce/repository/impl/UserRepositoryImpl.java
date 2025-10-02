@@ -79,4 +79,37 @@ public class UserRepositoryImpl implements UserRepository {
                 return null;
             }
         }
+
+    @Override
+    public UserEntity saveUser(UserEntity user) {
+        // 判斷：這裡簡化為只處理 INSERT 邏輯，
+        // 如果要處理 UPDATE，則需要檢查 user.getUserId() 是否為 null
+
+        // --- 處理 INSERT 邏輯 ---
+        String sql = " INSERT INTO user(email, password, created_date, last_modified_date) " +
+                " VALUES (:email, :password, :createdDate, :lastModifiedDate)";
+
+        Map<String, Object> map = new HashMap<>();
+        map.put("email", user.getEmail());
+        map.put("password", user.getPassword());
+
+        // 確保時間欄位是最新值，而不是 UserEntity 帶進來的
+        Date now = new Date();
+        map.put("createdDate", now);
+        map.put("lastModifiedDate", now);
+
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+        namedParameterJdbcTemplate.update(sql, new MapSqlParameterSource(map), keyHolder);
+
+        // 取得自動生成的主鍵
+        int userId = keyHolder.getKey().intValue();
+
+        // 將自動生成的值回填到 Entity，這是模仿 JPA save() 行為的關鍵
+        user.setUserId(userId);
+        user.setCreatedDate(now);
+        user.setLastModifiedDate(now);
+
+        return user;
+    }
+
 }

@@ -9,4 +9,6 @@ public interface UserRepository {
     UserEntity getUserById(Integer userId);
 
     UserEntity getUserByEmail(String email);
+
+    UserEntity saveUser(UserEntity user);
 }
