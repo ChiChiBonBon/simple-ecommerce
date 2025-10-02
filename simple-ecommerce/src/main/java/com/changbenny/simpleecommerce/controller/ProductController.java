@@ -1,43 +1,40 @@
 package com.changbenny.simpleecommerce.controller;
 
+import com.changbenny.simpleecommerce.constant.ApiCode;
 import com.changbenny.simpleecommerce.constant.ProductCategory;
-import com.changbenny.simpleecommerce.dto.PageResponseDTO;
-import com.changbenny.simpleecommerce.dto.ProductQueryParams;
-import com.changbenny.simpleecommerce.dto.ProductRequestDTO;
-import com.changbenny.simpleecommerce.dto.ProductResponseDTO;
-import com.changbenny.simpleecommerce.entity.ProductEntity;
+import com.changbenny.simpleecommerce.dto.*;
 import com.changbenny.simpleecommerce.service.ProductService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Tag(name = "商品管理 (Product)", description = "商品的查詢、新增、修改、刪除相關 API")
 @Validated
 @RestController
 public class ProductController {
-    @Autowired
-    ProductService productService;
 
-    //查詢所有商品
+    @Autowired
+    private ProductService productService;
+
     @PostMapping("/products")
-    public ResponseEntity<PageResponseDTO<ProductResponseDTO>> getAllProducts(
-            //查詢條件，非必填
+    @Operation(summary = "查詢商品列表", description = "支援分頁、排序、篩選條件查詢商品")
+    public ResponseEntity<ApiResponse<PageResponseDTO<ProductResponseDTO>>> getAllProducts(
             @RequestParam(required = false) ProductCategory category,
             @RequestParam(required = false) String search,
-            //排序，預設為created_date、desc
             @RequestParam(defaultValue = "created_date") String orderBy,
             @RequestParam(defaultValue = "desc") String sort,
-            //分頁
             @RequestParam(defaultValue = "24") @Max(24) @Min(0) Integer limit,
-            @RequestParam(defaultValue = "0") @Min(0) Integer offset
-    ) {
+            @RequestParam(defaultValue = "0") @Min(0) Integer offset) {
+
         ProductQueryParams productQueryParams = new ProductQueryParams();
         productQueryParams.setSearch(search);
         productQueryParams.setCategory(category);
@@ -47,78 +44,77 @@ public class ProductController {
         productQueryParams.setOffset(offset);
 
         List<ProductResponseDTO> productResponseDTOS = productService.getProducts(productQueryParams);
-
         Integer total = productService.countProducts(productQueryParams);
 
-        // 改用 ProductResponseDTO
         PageResponseDTO<ProductResponseDTO> pageResponseDTO = new PageResponseDTO<>();
         pageResponseDTO.setLimit(limit);
         pageResponseDTO.setOffset(offset);
         pageResponseDTO.setTotal(total);
         pageResponseDTO.setResults(productResponseDTOS);
 
-        return ResponseEntity.status(HttpStatus.OK).body(pageResponseDTO);
+        // 統一返回 HTTP 200
+        return ResponseEntity.ok(ApiResponse.success("查詢成功", pageResponseDTO));
     }
 
-    //依商品ID查找
     @PostMapping("/products/search/{productId}")
-    public ResponseEntity<ProductResponseDTO> getProductById(@PathVariable Integer productId) {
-        //查詢到的entity轉換dto
+    @Operation(summary = "查詢單一商品", description = "根據商品 ID 查詢商品詳細資訊")
+    public ResponseEntity<ApiResponse<ProductResponseDTO>> getProductById(@PathVariable Integer productId) {
+
         ProductResponseDTO productResponseDTO = productService.getProductById(productId);
 
-        if(productResponseDTO != null){
-            //回傳200狀態碼，前端請求成功並後端回傳結果
-            return ResponseEntity.status(HttpStatus.OK).body(productResponseDTO);
-        }else{
-            //回傳404狀態碼，前端請求的資源不存在
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        if (productResponseDTO != null) {
+            // 找到商品：HTTP 200 + code 200
+            return ResponseEntity.ok(ApiResponse.success("查詢成功", productResponseDTO));
+        } else {
+            // 找不到商品：HTTP 200 + code 4101
+            return ResponseEntity.ok(ApiResponse.error(ApiCode.PRODUCT_NOT_FOUND));
         }
     }
 
-    //商品新增
     @PostMapping("/products/create")
     @SecurityRequirement(name = "JWT")
-    public ResponseEntity<ProductResponseDTO> createProduct(@RequestBody @Valid ProductRequestDTO productRequestDTO) {
-        Integer productId = productService.createProduct(productRequestDTO);
+    @Operation(summary = "新增商品", description = "建立新商品（需要 JWT 認證）")
+    public ResponseEntity<ApiResponse<ProductResponseDTO>> createProduct(
+            @RequestBody @Valid ProductRequestDTO productRequestDTO) {
 
+        Integer productId = productService.createProduct(productRequestDTO);
         ProductResponseDTO productResponseDTO = productService.getProductById(productId);
 
-        //回傳201狀態碼，後端已成功建立一個新資源
-        return ResponseEntity.status(HttpStatus.CREATED).body(productResponseDTO);
+        // 統一返回 HTTP 200
+        return ResponseEntity.ok(ApiResponse.success("商品新增成功", productResponseDTO));
     }
 
-    //商品修改
     @PostMapping("/products/update/{productId}")
     @SecurityRequirement(name = "JWT")
-    public ResponseEntity<ProductResponseDTO> updateProduct(@PathVariable Integer productId,
-                                           @RequestBody @Valid ProductRequestDTO productRequestDTO) {
+    @Operation(summary = "修改商品", description = "更新指定商品的資訊（需要 JWT 認證）")
+    public ResponseEntity<ApiResponse<ProductResponseDTO>> updateProduct(
+            @PathVariable Integer productId,
+            @RequestBody @Valid ProductRequestDTO productRequestDTO) {
 
         ProductResponseDTO productResponseDTO = productService.getProductById(productId);
 
-        //找不到要修改的商品，則回傳404
-        if(productResponseDTO == null){
-            return ResponseEntity.notFound().build();
+        // 找不到要修改的商品
+        if (productResponseDTO == null) {
+            // HTTP 200 + code 4101
+            return ResponseEntity.ok(ApiResponse.error(ApiCode.PRODUCT_NOT_FOUND));
         }
 
-        //修改商品
-        productService.updateProduct(productId,productRequestDTO);
-
+        // 修改商品
+        productService.updateProduct(productId, productRequestDTO);
         ProductResponseDTO updatedProductResponseDTO = productService.getProductById(productId);
 
-        //回傳200和修改後的商品資料
-        return ResponseEntity.status(HttpStatus.OK).body(updatedProductResponseDTO);
+        // 統一返回 HTTP 200
+        return ResponseEntity.ok(ApiResponse.success("商品修改成功", updatedProductResponseDTO));
     }
 
-    //商品刪除
     @PostMapping("/products/delete/{productId}")
     @SecurityRequirement(name = "JWT")
-    //Void表示明確表示沒有 body
-    public ResponseEntity<Void> deleteProductById(@PathVariable Integer productId) {
+    @Operation(summary = "刪除商品", description = "刪除指定商品（需要 JWT 認證）")
+    public ResponseEntity<ApiResponse<Void>> deleteProductById(@PathVariable Integer productId) {
+
         productService.deleteProductById(productId);
 
-        //回傳204狀態碼，不回傳body
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+        // 統一返回 HTTP 200，無資料
+        return ResponseEntity.ok(ApiResponse.success("商品刪除成功"));
     }
 }
-
-

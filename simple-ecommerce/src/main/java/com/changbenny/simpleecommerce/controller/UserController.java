@@ -1,40 +1,46 @@
 package com.changbenny.simpleecommerce.controller;
 
+import com.changbenny.simpleecommerce.dto.ApiResponse;
 import com.changbenny.simpleecommerce.dto.UserLoginRequestDTO;
 import com.changbenny.simpleecommerce.dto.UserRegisterRequestDTO;
 import com.changbenny.simpleecommerce.dto.UserResponseDTO;
 import com.changbenny.simpleecommerce.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+@Tag(name = "使用者管理 (User)", description = "使用者註冊、登入相關 API（不含 JWT）")
 @RestController
 public class UserController {
+
     @Autowired
     private UserService userService;
 
-    //使用者註冊
-    @PostMapping("users/register")
-    public ResponseEntity<UserResponseDTO> register(@RequestBody @Valid UserRegisterRequestDTO userRegisterRequestDTO) {
-        Integer userId= userService.register(userRegisterRequestDTO);
+    @PostMapping("/users/register")
+    @Operation(summary = "使用者註冊", description = "建立新使用者帳號")
+    public ResponseEntity<ApiResponse<UserResponseDTO>> register(
+            @RequestBody @Valid UserRegisterRequestDTO userRegisterRequestDTO) {
 
+        Integer userId = userService.register(userRegisterRequestDTO);
         UserResponseDTO userResponseDTO = userService.getUserById(userId);
 
-        //ResponseDTO
-        return ResponseEntity.status(HttpStatus.CREATED).body(userResponseDTO);
+        // 統一返回 HTTP 200
+        return ResponseEntity.ok(ApiResponse.success("註冊成功", userResponseDTO));
     }
 
-    //使用者登入
-    @PostMapping("users/login")
-    public ResponseEntity<UserResponseDTO> login(@RequestBody @Valid UserLoginRequestDTO userLoginRequestDTO) {
+    @PostMapping("/users/login")
+    @Operation(summary = "使用者登入", description = "驗證帳號密碼並返回使用者資訊")
+    public ResponseEntity<ApiResponse<UserResponseDTO>> login(
+            @RequestBody @Valid UserLoginRequestDTO userLoginRequestDTO) {
 
         UserResponseDTO userResponseDTO = userService.login(userLoginRequestDTO);
 
-        //ResponseDTO
-        return ResponseEntity.status(HttpStatus.OK).body(userResponseDTO);
+        // 統一返回 HTTP 200
+        return ResponseEntity.ok(ApiResponse.success("登入成功", userResponseDTO));
     }
 }

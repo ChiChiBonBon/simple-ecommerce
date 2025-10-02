@@ -1,52 +1,47 @@
 package com.changbenny.simpleecommerce.controller;
 
-import com.changbenny.simpleecommerce.dto.CreateOrderRequestDTO;
-import com.changbenny.simpleecommerce.dto.OrderQueryParams;
-import com.changbenny.simpleecommerce.dto.OrderResponseDTO;
-import com.changbenny.simpleecommerce.dto.PageResponseDTO;
-import com.changbenny.simpleecommerce.entity.OrderEntity;
+import com.changbenny.simpleecommerce.dto.*;
 import com.changbenny.simpleecommerce.service.OrderService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Tag(name = "訂單管理 (Order)", description = "訂單的建立與查詢相關 API")
 @RestController
 @SecurityRequirement(name = "JWT")
 public class OrderController {
+
     @Autowired
     private OrderService orderService;
 
-    //建立使用者訂單
     @PostMapping("/users/{userId}/orders")
-    public ResponseEntity<OrderResponseDTO> createOrder(@PathVariable Integer userId,
-                                         @RequestBody @Valid CreateOrderRequestDTO createOrderRequestDTO) {
+    @Operation(summary = "建立訂單", description = "為指定使用者建立新訂單")
+    public ResponseEntity<ApiResponse<OrderResponseDTO>> createOrder(
+            @PathVariable Integer userId,
+            @RequestBody @Valid CreateOrderRequestDTO createOrderRequestDTO) {
 
-        System.out.println("========== Controller: createOrder ==========");
-        System.out.println("Received userId: " + userId);
-        System.out.println("Received request: " + createOrderRequestDTO);
-
-        Integer orderId = orderService.createOrder(userId,createOrderRequestDTO);
-
+        Integer orderId = orderService.createOrder(userId, createOrderRequestDTO);
         OrderResponseDTO orderResponseDTO = orderService.getOrderById(orderId);
 
-        //回傳201狀態碼，後端已成功建立一個新資源
-        return ResponseEntity.status(HttpStatus.CREATED).body(orderResponseDTO);
+        // 統一返回 HTTP 200
+        return ResponseEntity.ok(ApiResponse.success("訂單建立成功", orderResponseDTO));
     }
 
-    //查詢訂單
-    @PostMapping("users/{userId}/orders/search")
-    public ResponseEntity<PageResponseDTO> getOrders(
+    @PostMapping("/users/{userId}/orders/search")
+    @Operation(summary = "查詢訂單列表", description = "分頁查詢指定使用者的訂單")
+    public ResponseEntity<ApiResponse<PageResponseDTO<OrderResponseDTO>>> getOrders(
             @PathVariable Integer userId,
             @RequestParam(defaultValue = "24") @Max(24) @Min(0) Integer limit,
-            @RequestParam(defaultValue = "0") @Min(0) Integer offset
-    ) {
+            @RequestParam(defaultValue = "0") @Min(0) Integer offset) {
+
         // 組裝查詢參數
         OrderQueryParams orderQueryParams = new OrderQueryParams();
         orderQueryParams.setUserId(userId);
@@ -66,6 +61,7 @@ public class OrderController {
         pageResponseDTO.setTotal(count);
         pageResponseDTO.setResults(orderResponseDTOS);
 
-        return ResponseEntity.status(HttpStatus.OK).body(pageResponseDTO);
+        // 統一返回 HTTP 200
+        return ResponseEntity.ok(ApiResponse.success("查詢成功", pageResponseDTO));
     }
 }

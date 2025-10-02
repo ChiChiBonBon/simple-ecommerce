@@ -1,46 +1,104 @@
 package com.changbenny.simpleecommerce.controller;
 
-import com.changbenny.simpleecommerce.util.JwtUtil;
 import com.changbenny.simpleecommerce.dto.*;
-import com.changbenny.simpleecommerce.entity.UserEntity;
+import com.changbenny.simpleecommerce.exception.InvalidTokenException;
+import com.changbenny.simpleecommerce.service.PasswordResetService;
 import com.changbenny.simpleecommerce.service.UserService;
+import com.changbenny.simpleecommerce.util.JwtUtil;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import org.springframework.http.*;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+@Tag(
+        name = "使用者認證與授權 (Authentication)",
+        description = "提供使用者註冊、登入/登出、密碼重設等相關的 API"
+)
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
 
     private final UserService userService;
-    public AuthController(UserService userService){ this.userService = userService; }
+    private final PasswordResetService passwordResetService;
+
+    public AuthController(UserService userService, PasswordResetService passwordResetService) {
+        this.userService = userService;
+        this.passwordResetService = passwordResetService;
+    }
 
     @PostMapping("/register")
-    public ResponseEntity<AuthResponseDTO> register(@RequestBody @Valid UserRegisterRequestDTO userRegisterRequestDTO){
+    @Operation(summary = "使用者註冊", description = "創建新使用者帳號並返回登入憑證")
+    public ResponseEntity<ApiResponse<AuthResponseDTO>> register(
+            @RequestBody @Valid UserRegisterRequestDTO userRegisterRequestDTO) {
+
         Integer userId = userService.register(userRegisterRequestDTO);
         UserResponseDTO userResponseDTO = userService.getUserById(userId);
 
         String token = JwtUtil.generate(userResponseDTO.getUserId(), userResponseDTO.getEmail());
+
         AuthResponseDTO authResponseDTO = new AuthResponseDTO();
         authResponseDTO.setEmail(userResponseDTO.getEmail());
         authResponseDTO.setAccessToken(token);
         authResponseDTO.setExpiresIn(3600L);
-        return ResponseEntity.status(HttpStatus.CREATED).body(authResponseDTO);
+
+        // 統一返回 HTTP 200
+        return ResponseEntity.ok(ApiResponse.success("註冊成功", authResponseDTO));
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponseDTO> login(@RequestBody @Valid UserLoginRequestDTO userLoginRequestDTO) {
-        //帳密驗證：內部已做「email 是否存在」與「MD5 雜湊比對」
+    @Operation(summary = "使用者登入", description = "驗證帳號密碼並返回 JWT Token")
+    public ResponseEntity<ApiResponse<AuthResponseDTO>> login(
+            @RequestBody @Valid UserLoginRequestDTO userLoginRequestDTO) {
+
+        // 帳密驗證：內部已做「email 是否存在」與「MD5 雜湊比對」
         UserResponseDTO userResponseDTO = userService.login(userLoginRequestDTO);
 
-        //簽發 JWT：以資料庫查出的 userId 與 email 為準
+        // 簽發 JWT：以資料庫查出的 userId 與 email 為準
         String token = JwtUtil.generate(userResponseDTO.getUserId(), userResponseDTO.getEmail());
 
-        //回傳授權資訊（不要回密碼）
+        // 回傳授權資訊（不要回密碼）
         AuthResponseDTO authResponseDTO = new AuthResponseDTO();
         authResponseDTO.setEmail(userResponseDTO.getEmail());
         authResponseDTO.setAccessToken(token);
-        authResponseDTO.setExpiresIn(3600L); //1小時（依JwtUtil 設定調整）
-        return ResponseEntity.ok(authResponseDTO);
+        authResponseDTO.setExpiresIn(3600L);
+
+        // 統一返回 HTTP 200 + ApiResponse
+        return ResponseEntity.ok(ApiResponse.success("登入成功", authResponseDTO));
+    }
+
+    @PostMapping("/forgot-password")
+    @Operation(summary = "發送密碼重設郵件", description = "輸入註冊 Email，系統會發送包含重設連結的郵件")
+    public ResponseEntity<ApiResponse<Void>> forgotPassword(
+            @RequestBody @Valid ForgotPasswordRequestDTO forgotPasswordRequest) {
+
+        passwordResetService.processForgotPassword(forgotPasswordRequest.getEmail());
+
+        // 為了安全性，無論 email 是否存在，都應回傳成功訊息，避免用戶探測系統 email
+        return ResponseEntity.ok(
+                ApiResponse.success("If a matching account is found, a password reset email has been sent.")
+        );
+    }
+
+    @PostMapping("/reset-password")
+    @Operation(summary = "執行密碼重設", description = "使用 Token 和新密碼完成密碼更新")
+    public ResponseEntity<ApiResponse<Void>> resetPassword(
+            @RequestBody @Valid ResetPasswordRequestDTO resetPasswordRequest) {
+
+        try {
+            passwordResetService.resetPassword(
+                    resetPasswordRequest.getToken(),
+                    resetPasswordRequest.getNewPassword()
+            );
+
+            // 成功：HTTP 200 + code 200
+            return ResponseEntity.ok(ApiResponse.success("Password has been successfully reset."));
+
+        } catch (InvalidTokenException e) {
+            // 失敗：也返回 HTTP 200，但 code 是錯誤碼
+            return ResponseEntity.ok(
+                    ApiResponse.error(e.getApiCode(), e.getMessage())
+            );
+        }
     }
 }
