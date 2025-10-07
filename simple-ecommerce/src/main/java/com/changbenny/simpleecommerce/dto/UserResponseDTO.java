@@ -21,7 +21,7 @@ public class UserResponseDTO {
     private Integer userId;
 
     @Schema(description = "電子信箱", example = "user@example.com")
-    @JsonProperty("e_mail")//接收request或處理response的指定此json欄位
+    @JsonProperty("email")//接收request或處理response的指定此json欄位
     private String email;
 
 

@@ -12,7 +12,7 @@ public class UserLoginRequestDTO {
     @NotBlank(message = "電子信箱不能為空")
     @Email(message = "電子信箱格式錯誤")
     @Size(max = 100, message = "電子信箱不得超過 100 字元")
-    @JsonProperty("e_mail")//接收request或處理response的指定此json欄位
+    @JsonProperty("email")//接收request或處理response的指定此json欄位
     private String email;
 
     @Schema(description = "密碼", example = "password123", requiredMode = Schema.RequiredMode.REQUIRED)
