@@ -63,6 +63,9 @@ public class SecurityConfig {
                         // 食藥署新聞（公開）
                         .requestMatchers("/fda/news").permitAll()
 
+                        // 3.5 Jasypt 加解密 → 可公開訪問
+                        .requestMatchers("/jasypt/**").permitAll()
+
                         // 其他都需要驗證
                         .anyRequest().authenticated()
                 )

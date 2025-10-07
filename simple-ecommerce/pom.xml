@@ -29,7 +29,7 @@
 	</scm>
 	<properties>
 		<java.version>17</java.version>
-        <springdoc.version>2.6.0</springdoc.version>
+        <springdoc.version>2.8.12</springdoc.version>
     </properties>
 	<dependencies>
         <!-- JDBC -->
@@ -123,6 +123,17 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <optional>true</optional>
+        </dependency>
+        <!-- Java Mail -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
+        </dependency>
+        <!-- jasypt -->
+        <dependency>
+            <groupId>com.github.ulisesbocchio</groupId>
+            <artifactId>jasypt-spring-boot-starter</artifactId>
+            <version>3.0.5</version>
         </dependency>
 	</dependencies>
 	<build>
