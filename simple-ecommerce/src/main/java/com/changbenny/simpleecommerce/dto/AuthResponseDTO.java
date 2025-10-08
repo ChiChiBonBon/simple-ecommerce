@@ -11,6 +11,10 @@ import lombok.Data;
 @Data
 @Schema(description = "認證回應")
 public class AuthResponseDTO {
+
+    @Schema(description = "使用者 ID", example = "1")
+    private Integer userId;  //查詢訂單用、建立訂單用
+
     @Schema(description = "使用者電子信箱", example = "user@example.com")
     private String email;
 
@@ -18,5 +22,5 @@ public class AuthResponseDTO {
     private String accessToken;
 
     @Schema(description = "權杖有效期限（秒）", example = "3600")
-    private Long expiresIn; // 秒
+    private Long expiresIn;
 }
