@@ -144,4 +144,24 @@
 			</plugin>
 		</plugins>
 	</build>
+    <profiles>
+        <profile>
+            <id>demo</id>
+            <properties>
+                <activatedProperties>demo</activatedProperties>
+            </properties>
+            <build>
+                <finalName>${project.artifactId}-${project.version}-demo</finalName>
+            </build>
+        </profile>
+        <profile>
+            <id>pro</id>
+            <properties>
+                <activatedProperties>pro</activatedProperties>
+            </properties>
+            <build>
+                <finalName>${project.artifactId}-${project.version}-pro</finalName>
+            </build>
+        </profile>
+    </profiles>
 </project>

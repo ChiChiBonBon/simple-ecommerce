@@ -3,6 +3,7 @@ package com.changbenny.simpleecommerce.config;
 import com.changbenny.simpleecommerce.filter.JwtAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -10,6 +11,12 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+//CORS 相關 import
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
 
 /**
  * Spring Security 的主要設定類
@@ -33,10 +40,36 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
+    //集中管理 CORS 設定（本地開發 5174/5175）
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration cfg = new CorsConfiguration();
+        // 允許的前端來源（依你的實際 dev 埠補齊）
+        cfg.setAllowedOrigins(List.of(
+                "http://localhost:5174", "http://127.0.0.1:5174",
+                "http://localhost:5175", "http://127.0.0.1:5175"
+        ));
+        // 允許的方法（含 OPTIONS 供 preflight）
+        cfg.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
+        // 允許的標頭（如使用 JWT，需允許 Authorization）
+        cfg.setAllowedHeaders(List.of("*"));
+        // 回應可暴露的標頭
+        cfg.setExposedHeaders(List.of("Authorization"));
+        // 若需要 cookie（通常 JWT 不需要）就設為 true
+        cfg.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", cfg);
+        return source;
+    }
+
     //定義整個系統的安全策略
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+                //0. 開啟 CORS，讓瀏覽器的 preflight (OPTIONS) 能通過
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+
                 // 1. 關閉CSRF，因為是Restful API，不用傳統session-cookie
                 .csrf(csrf -> csrf.disable())
 
@@ -46,9 +79,12 @@ public class SecurityConfig {
 
                 // 3.設定授權規則
                 .authorizeHttpRequests(auth -> auth
+                        //3.0允許瀏覽器的 Preflight（OPTIONS）請求
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
                         // 3.1 認證相關 API（註冊、登入）→ 無需攔截
                         // 放行認證端點
-                        .requestMatchers("/auth/register", "/auth/login","/auth/forgot-password","/auth/reset-password").permitAll()
+                        .requestMatchers("/auth/register", "/auth/login", "/auth/forgot-password", "/auth/reset-password", "/auth/change-password").permitAll()
                         .requestMatchers("/users/register", "/users/login").permitAll()
 
                         // 3.2 Swagger 文件相關 → 無需攔截
@@ -73,7 +109,7 @@ public class SecurityConfig {
                 // 4.在UsernamePasswordAuthenticationFilter之前，插入自訂的JWT過濾器
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
-        // 5.回傳SecurityFilterChain給Spring Security管理
+        //        // 5.回傳SecurityFilterChain給Spring Security管理
         return http.build();
     }
 }
