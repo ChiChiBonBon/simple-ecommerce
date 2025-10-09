@@ -4,8 +4,8 @@ import com.changbenny.simpleecommerce.constant.ApiCode;
 import com.changbenny.simpleecommerce.dto.ApiResponse;
 import com.changbenny.simpleecommerce.dto.FdaNewsDTO;
 import com.changbenny.simpleecommerce.dto.FdaNewsQueryParams;
+import com.changbenny.simpleecommerce.dto.FdaNewsResponse;
 import com.changbenny.simpleecommerce.service.FdaService;
-import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Arrays;
 import java.util.List;
 
 @RestController
@@ -28,34 +29,44 @@ public class FdaController {
     @Autowired
     private FdaService fdaService;
 
-    @GetMapping("/news") // 確保 @GetMapping 沒有被註釋掉
-    @Operation(summary = "查詢食藥署新聞", description = "可依關鍵字、日期區間查詢新聞，最多回傳 1000 筆")
-    public ResponseEntity<ApiResponse<List<FdaNewsDTO>>> searchNews(
+    @GetMapping("/news")
+    public ResponseEntity<ApiResponse<List<FdaNewsResponse>>> searchNews(
             @RequestParam(required = false) String keyword,
-            @RequestParam(required = false) String startdate,
-            @RequestParam(required = false) String enddate
+            @RequestParam(required = false, defaultValue = "") String startdate,
+            @RequestParam(required = false, defaultValue = "") String enddate
     ) {
         logger.info("查詢食藥署新聞: keyword={}, startdate={}, enddate={}", keyword, startdate, enddate);
-
         try {
-            FdaNewsQueryParams fdaNewsQueryParams = new FdaNewsQueryParams();
+            var query = new FdaNewsQueryParams();
+            query.setKeyword(keyword);
+            query.setStartdate(startdate);
+            query.setEnddate(enddate);
 
-            fdaNewsQueryParams.setKeyword(keyword);
-            fdaNewsQueryParams.setStartdate(startdate);
-            fdaNewsQueryParams.setEnddate(enddate);
+            // 目前 service 回來是「吃外部中文鍵的 DTO」
+            List<FdaNewsDTO> in = fdaService.searchNews(query);
 
-            // 呼叫 Service 執行外部 API 存取
-            List<FdaNewsDTO> newsList = fdaService.searchNews(fdaNewsQueryParams);
+            // 控制器先轉一層給前端（英文鍵/attachments 陣列/日期字串）
+            List<FdaNewsResponse> payload = in.stream().map(dto -> {
+                var r = new FdaNewsResponse();
+                r.setTitle(dto.getTitle());
+                r.setContent(dto.getContent());
+                r.setContentText(dto.getContent()!=null
+                        ? dto.getContent().replaceAll("<br\\s*/?>", "\n")
+                        .replaceAll("<[^>]+>", "")
+                        .replaceAll("\\s+"," ")
+                        .trim()
+                        : "");
+                r.setAttachments(dto.getAttachments()==null ? List.of()
+                        : Arrays.stream(dto.getAttachments().split(","))
+                        .map(String::trim).filter(s -> !s.isEmpty()).toList());
+                r.setPublishDate(dto.getPublishDate());
+                return r;
+            }).toList();
 
-            return ResponseEntity.ok(
-                    ApiResponse.success("查詢成功", newsList)
-            );
-
+            return ResponseEntity.ok(ApiResponse.success("查詢成功", payload));
         } catch (Exception e) {
-            logger.error("查詢食藥署新聞失敗: {}", e.getMessage(), e);
-            return ResponseEntity.ok(
-                    ApiResponse.error(ApiCode.EXTERNAL_API_ERROR, "查詢失敗: " + e.getMessage())
-            );
+            logger.error("查詢食藥署新聞失敗", e);
+            return ResponseEntity.ok(ApiResponse.error(ApiCode.EXTERNAL_API_ERROR, "查詢失敗: " + e.getMessage()));
         }
     }
 }

@@ -1,12 +1,15 @@
 package com.changbenny.simpleecommerce.controller;
 
+import com.changbenny.simpleecommerce.constant.ApiCode;
 import com.changbenny.simpleecommerce.dto.*;
 import com.changbenny.simpleecommerce.exception.InvalidTokenException;
 import com.changbenny.simpleecommerce.service.PasswordResetService;
 import com.changbenny.simpleecommerce.service.UserService;
 import com.changbenny.simpleecommerce.util.JwtUtil;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -27,6 +30,8 @@ public class AuthController {
         this.passwordResetService = passwordResetService;
     }
 
+
+
     @PostMapping("/register")
     @Operation(summary = "使用者註冊", description = "創建新使用者帳號並返回登入憑證")
     public ResponseEntity<ApiResponse<AuthResponseDTO>> register(
@@ -38,6 +43,7 @@ public class AuthController {
         String token = JwtUtil.generate(userResponseDTO.getUserId(), userResponseDTO.getEmail());
 
         AuthResponseDTO authResponseDTO = new AuthResponseDTO();
+        authResponseDTO.setUserId(userResponseDTO.getUserId());//設置 userId
         authResponseDTO.setEmail(userResponseDTO.getEmail());
         authResponseDTO.setAccessToken(token);
         authResponseDTO.setExpiresIn(3600L);
@@ -59,6 +65,7 @@ public class AuthController {
 
         // 回傳授權資訊（不要回密碼）
         AuthResponseDTO authResponseDTO = new AuthResponseDTO();
+        authResponseDTO.setUserId(userResponseDTO.getUserId());  //設置 userId
         authResponseDTO.setEmail(userResponseDTO.getEmail());
         authResponseDTO.setAccessToken(token);
         authResponseDTO.setExpiresIn(3600L);
@@ -98,6 +105,58 @@ public class AuthController {
             // 失敗：也返回 HTTP 200，但 code 是錯誤碼
             return ResponseEntity.ok(
                     ApiResponse.error(e.getApiCode(), e.getMessage())
+            );
+        }
+    }
+
+    @PostMapping("/change-password")
+    @SecurityRequirement(name = "JWT")
+    @Operation(summary = "修改密碼（需登入）", description = "已登入用戶修改自己的密碼")
+    public ResponseEntity<ApiResponse<Void>> changePassword(
+            @RequestBody @Valid ChangePasswordRequestDTO changePasswordRequest,
+            HttpServletRequest request) {
+
+        // 從 JWT Filter 設置的 attribute 取得 userId
+        Integer userId = (Integer) request.getAttribute("userId");
+
+        if (userId == null) {
+            return ResponseEntity.ok(
+                    ApiResponse.error(ApiCode.UNAUTHORIZED, "未授權")
+            );
+        }
+
+        try {
+            // 1. 取得用戶資料
+            UserResponseDTO user = userService.getUserById(userId);
+            if (user == null) {
+                return ResponseEntity.ok(
+                        ApiResponse.error(ApiCode.USER_NOT_FOUND)
+                );
+            }
+
+            // 2. 驗證當前密碼
+            boolean isCurrentPasswordValid = userService.verifyPassword(
+                    user.getUserId(),
+                    changePasswordRequest.getCurrentPassword()
+            );
+
+            if (!isCurrentPasswordValid) {
+                return ResponseEntity.ok(
+                        ApiResponse.error(ApiCode.INVALID_CREDENTIALS, "當前密碼錯誤")
+                );
+            }
+
+            // 3. 更新密碼
+            userService.updatePassword(
+                    user.getUserId(),
+                    changePasswordRequest.getNewPassword()
+            );
+
+            return ResponseEntity.ok(ApiResponse.success("密碼修改成功"));
+
+        } catch (Exception e) {
+            return ResponseEntity.ok(
+                    ApiResponse.error(ApiCode.SERVER_ERROR, "修改密碼失敗: " + e.getMessage())
             );
         }
     }
