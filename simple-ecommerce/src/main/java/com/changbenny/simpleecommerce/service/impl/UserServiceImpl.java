@@ -88,4 +88,39 @@ public class UserServiceImpl implements UserService {
         dto.setLastModifiedDate(entity.getLastModifiedDate());
         return dto;
     }
+
+
+    //驗證用戶的密碼是否正確
+    @Override
+    public boolean verifyPassword(Integer userId, String rawPassword) {
+        UserEntity userEntity = userRepository.getUserById(userId);
+
+        if (userEntity == null) {
+            logger.warn("驗證密碼失敗: userId {} 不存在", userId);
+            return false;
+        }
+
+        // 使用 BCrypt 驗證密碼
+        return passwordEncoder.matches(rawPassword, userEntity.getPassword());
+    }
+
+    //更新用戶密碼
+    @Override
+    public void updatePassword(Integer userId, String newPassword) {
+        UserEntity userEntity = userRepository.getUserById(userId);
+
+        if (userEntity == null) {
+            logger.warn("更新密碼失敗: userId {} 不存在", userId);
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "使用者不存在");
+        }
+
+        // 加密新密碼
+        String hashedPassword = passwordEncoder.encode(newPassword);
+        userEntity.setPassword(hashedPassword);
+
+        // 儲存到資料庫
+        userRepository.saveUser(userEntity);
+
+        logger.info("使用者 {} 已成功更新密碼", userEntity.getEmail());
+    }
 }

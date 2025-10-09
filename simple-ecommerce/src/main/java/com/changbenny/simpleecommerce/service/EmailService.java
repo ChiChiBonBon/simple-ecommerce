@@ -2,6 +2,7 @@ package com.changbenny.simpleecommerce.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
@@ -11,6 +12,10 @@ public class EmailService {
 
     private static final Logger logger = LoggerFactory.getLogger(EmailService.class);
     private final JavaMailSender mailSender;
+
+    // 從 application.properties 讀取前端 URL
+    @Value("${app.frontend.url}")
+    private String frontendUrl;
 
     public EmailService(JavaMailSender mailSender) {
         this.mailSender = mailSender;
@@ -40,15 +45,24 @@ public class EmailService {
      * 建構信件內容
      */
     private String buildResetEmailContent(String email, String token) {
+        // 使用設定的前端 URL
+        String resetUrl = String.format("%s/reset-password?token=%s", frontendUrl, token);
+
         return String.format("""
-            您好，
+            您好,
             
             我們收到了您（%s）的密碼重置請求。
             
-            您的重置token是：
+            請點擊以下連結在 30 分鐘內重設密碼：
             %s
             
-            請在 30 分鐘內使用此token重置密碼。
+            如果上方連結無法點擊，請複製以下網址到瀏覽器：
+            %s
+            
+            您的重置 token 是：
+            %s
+            
+            請在 30 分鐘內使用此 token 重置密碼。
             
             如果您沒有請求重置密碼，請忽略此信件。
             
@@ -56,6 +70,6 @@ public class EmailService {
             
             ---
             Simple E-commerce Team
-            """, email, token);
+            """, email, resetUrl, resetUrl, token);
     }
 }
