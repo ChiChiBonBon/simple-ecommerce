@@ -40,14 +40,15 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-    //集中管理 CORS 設定（本地開發 5174/5175）
+    //集中管理 CORS 設定（本地開發 5174/5175、5500）
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration cfg = new CorsConfiguration();
-        // 允許的前端來源（依你的實際 dev 埠補齊）
+        // 允許的前端來源
         cfg.setAllowedOrigins(List.of(
                 "http://localhost:5174", "http://127.0.0.1:5174",
-                "http://localhost:5175", "http://127.0.0.1:5175"
+                "http://localhost:5175", "http://127.0.0.1:5175",
+                "http://localhost:5500","http://127.0.0.1:5500"
         ));
         // 允許的方法（含 OPTIONS 供 preflight）
         cfg.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
