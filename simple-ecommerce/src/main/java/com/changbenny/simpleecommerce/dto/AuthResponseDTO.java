@@ -1,7 +1,10 @@
 package com.changbenny.simpleecommerce.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+
+import java.util.Date;
 
 //產生以下
 //Getter/Setter
@@ -23,4 +26,8 @@ public class AuthResponseDTO {
 
     @Schema(description = "權杖有效期限（秒）", example = "3600")
     private Long expiresIn;
+
+    @Schema(description = "帳號建立時間", example = "2025-10-01 12:00:00")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Taipei")
+    private Date createdDate;
 }

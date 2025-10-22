@@ -47,6 +47,7 @@ public class AuthController {
         authResponseDTO.setEmail(userResponseDTO.getEmail());
         authResponseDTO.setAccessToken(token);
         authResponseDTO.setExpiresIn(3600L);
+        authResponseDTO.setCreatedDate(userResponseDTO.getCreatedDate());
 
         // 統一返回 HTTP 200
         return ResponseEntity.ok(ApiResponse.success("註冊成功", authResponseDTO));
@@ -69,6 +70,7 @@ public class AuthController {
         authResponseDTO.setEmail(userResponseDTO.getEmail());
         authResponseDTO.setAccessToken(token);
         authResponseDTO.setExpiresIn(3600L);
+        authResponseDTO.setCreatedDate(userResponseDTO.getCreatedDate());
 
         // 統一返回 HTTP 200 + ApiResponse
         return ResponseEntity.ok(ApiResponse.success("登入成功", authResponseDTO));
