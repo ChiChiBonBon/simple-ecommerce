@@ -1,6 +1,7 @@
 package com.changbenny.simpleecommerce.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -29,5 +30,6 @@ public class AuthResponseDTO {
 
     @Schema(description = "帳號建立時間", example = "2025-10-01 12:00:00")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Taipei")
+    @JsonProperty("createdAt")
     private Date createdDate;
 }
